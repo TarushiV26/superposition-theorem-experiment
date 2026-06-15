@@ -1,0 +1,184 @@
+{
+  "experimentName": "Basic Electrical Science Lab",
+  "defaultLocale": "en",
+  "locales": ["en"],
+  "audio": {
+    "autoplay": false
+  },
+  "steps": [
+    {
+      "id": 1,
+      "target": "#experiment-title-board",
+      "title": {
+        "en": "Experiment Goal"
+      },
+      "description": {
+        "en": "This experiment verifies the Superposition Theorem by recording branch currents for current source only, voltage source only, and both sources connected."
+      },
+      "audio": "#",
+      "placement": "bottom"
+    },
+    {
+      "id": 2,
+      "target": "#resistance-controls",
+      "title": {
+        "en": "Set Resistance Values First"
+      },
+      "description": {
+        "en": "Set R1, R2, and R3 before making connections. These resistance values must remain the same for all three cases in one experiment run."
+      },
+      "audio": "#",
+      "placement": "right"
+    },
+    {
+      "id": 3,
+      "target": "#circuit-panel",
+      "title": {
+        "en": "Case-wise Circuit Wiring"
+      },
+      "description": {
+        "en": "Make and verify the circuit connections separately for each case: current source only, voltage source only, and both sources connected."
+      },
+      "audio": "#",
+      "placement": "left"
+    },
+    {
+  "id": 4,
+  "target": "#current-source",
+  "title": {
+    "en": "Current Source"
+  },
+  "description": {
+    "en": "The current source supplies a fixed current to the circuit. During the Current Source Only case, activate this source and set the desired current value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
+  },
+  "audio": "#",
+  "placement": "left"
+},
+{
+  "id": 5,
+  "target": "#ammeters-walkthrough-target",
+  "title": { "en": "Ammeters A1, A2 and A3" },
+  "description": {
+    "en": "A1, A2 and A3 show the branch current readings. Note these values for Current Source Only, Voltage Source Only and Both Sources Active cases."
+  },
+  "audio": "#",
+  "placement": "bottom"
+},
+    {
+  "id": 6,
+  "target": "#power-supply-2",
+  "title": {
+    "en": "Voltage Source"
+  },
+  "description": {
+    "en": "The voltage source supplies a fixed voltage to the circuit. During the Voltage Source Only case, activate this source and set the desired voltage value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
+  },
+  "audio": "#",
+  "placement": "left"
+},
+    
+    {
+      "id": 7,
+      "target": "#check-button",
+      "title": {
+        "en": "Check Connections"
+      },
+      "description": {
+        "en": "Press CHECK after wiring each case. Sources should be switched ON only after the current case connections are verified."
+      },
+      "audio": "#",
+      "placement": "right"
+    },
+    {
+      "id": 8,
+      "target": "#add-reading-button",
+      "title": {
+        "en": "Add Reading"
+      },
+      "description": {
+        "en": "Click ADD after each verified case. The observation table stores one row each for current source only, voltage source only, and both sources connected."
+      },
+      "audio": "#",
+      "placement": "right"
+    },
+    {
+  "id": 9,
+  "target": "#instruction-button",
+  "title": { "en": "Instructions" },
+  "description": {
+    "en": "Click INSTRUCTION to open the detailed procedure for performing all three cases of the Superposition Theorem experiment."
+  },
+  "audio": "#",
+  "placement": "right"
+},
+
+
+{
+  "id": 10,
+  "target": "#auto-connect-button",
+  "title": { "en": "Auto Connect" },
+  "description": {
+    "en": "Click AUTO CONNECT to automatically make the required connections for the current case. Case 1 connects Current Source Only, Case 2 connects Voltage Source Only, and Case 3 connects both sources."
+  },
+  "audio": "#",
+  "placement": "right"
+},
+
+{
+  "id": 11,
+  "target": "#reset-button",
+  "title": { "en": "Reset Experiment" },
+  "description": {
+    "en": "Click RESET to clear the circuit connections, source values, resistance values, observations, and calculation entries."
+  },
+  "audio": "#",
+  "placement": "right"
+},
+{
+  "id": 12,
+  "target": "#print-button",
+  "title": { "en": "Print Page" },
+  "description": {
+    "en": "Click PRINT to print the current experiment page after completing the observations."
+  },
+  "audio": "#",
+  "placement": "right"
+},
+    {
+      "id": 13,
+      "target": "#observation-table-panel",
+      "title": {
+        "en": "Observation Table"
+      },
+      "description": {
+        "en": "This table displays the measured branch currents I1, I2, and I3 for all three cases. These readings are used later in the calculation panel."
+      },
+      "audio": "#",
+      "placement": "right"
+    },
+    {
+      "id": 14,
+      "target": "#calculation-panel",
+      "title": {
+        "en": "Calculation Panel"
+      },
+      "description": {
+        "en": "After completing all three observations, enter the resistance values, source values, current source readings, and voltage source readings in this section."
+      },
+      "audio": "#",
+      "placement": "top"
+    },
+    {
+      "id": 15,
+      "target": "#generate-report-button",
+      "title": {
+        "en": "Generate Report"
+      },
+      "description": {
+        "en": "After completing the observation table and calculation verification, generate the final report containing readings, calculations, verification status, and conclusion."
+      },
+      "audio": "#",
+      "placement": "top"
+    }
+  ]
+}
