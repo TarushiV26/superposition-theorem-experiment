@@ -19,66 +19,17 @@
       "placement": "bottom"
     },
     {
-      "id": 2,
-      "target": "#resistance-controls",
-      "title": {
-        "en": "Set Resistance Values First"
-      },
-      "description": {
-        "en": "Set R1, R2, and R3 before making connections. These resistance values must remain the same for all three cases in one experiment run."
-      },
-      "audio": "#",
-      "placement": "right"
-    },
+  "id": 2,
+  "target": "#instruction-button",
+  "title": { "en": "Instructions" },
+  "description": {
+    "en": "Click INSTRUCTION to open the detailed procedure for performing all three cases of the Superposition Theorem experiment."
+  },
+  "audio": "#",
+  "placement": "right"
+},
     {
       "id": 3,
-      "target": "#circuit-panel",
-      "title": {
-        "en": "Case-wise Circuit Wiring"
-      },
-      "description": {
-        "en": "Make and verify the circuit connections separately for each case: current source only, voltage source only, and both sources connected."
-      },
-      "audio": "#",
-      "placement": "left"
-    },
-    {
-  "id": 4,
-  "target": "#current-source",
-  "title": {
-    "en": "Current Source"
-  },
-  "description": {
-    "en": "The current source supplies a fixed current to the circuit. During the Current Source Only case, activate this source and set the desired current value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
-  },
-  "audio": "#",
-  "placement": "left"
-},
-{
-  "id": 5,
-  "target": "#ammeters-walkthrough-target",
-  "title": { "en": "Ammeters A1, A2 and A3" },
-  "description": {
-    "en": "A1, A2 and A3 show the branch current readings. Note these values for Current Source Only, Voltage Source Only and Both Sources Active cases."
-  },
-  "audio": "#",
-  "placement": "bottom"
-},
-    {
-  "id": 6,
-  "target": "#power-supply-2",
-  "title": {
-    "en": "Voltage Source"
-  },
-  "description": {
-    "en": "The voltage source supplies a fixed voltage to the circuit. During the Voltage Source Only case, activate this source and set the desired voltage value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
-  },
-  "audio": "#",
-  "placement": "left"
-},
-    
-    {
-      "id": 7,
       "target": "#check-button",
       "title": {
         "en": "Check Connections"
@@ -90,7 +41,17 @@
       "placement": "right"
     },
     {
-      "id": 8,
+  "id": 4,
+  "target": "#auto-connect-button",
+  "title": { "en": "Auto Connect" },
+  "description": {
+    "en": "Click AUTO CONNECT to automatically make the required connections for the current case. Case 1 connects Current Source Only, Case 2 connects Voltage Source Only, and Case 3 connects both sources."
+  },
+  "audio": "#",
+  "placement": "right"
+},
+    {
+      "id": 5,
       "target": "#add-reading-button",
       "title": {
         "en": "Add Reading"
@@ -101,31 +62,9 @@
       "audio": "#",
       "placement": "right"
     },
-    {
-  "id": 9,
-  "target": "#instruction-button",
-  "title": { "en": "Instructions" },
-  "description": {
-    "en": "Click INSTRUCTION to open the detailed procedure for performing all three cases of the Superposition Theorem experiment."
-  },
-  "audio": "#",
-  "placement": "right"
-},
-
 
 {
-  "id": 10,
-  "target": "#auto-connect-button",
-  "title": { "en": "Auto Connect" },
-  "description": {
-    "en": "Click AUTO CONNECT to automatically make the required connections for the current case. Case 1 connects Current Source Only, Case 2 connects Voltage Source Only, and Case 3 connects both sources."
-  },
-  "audio": "#",
-  "placement": "right"
-},
-
-{
-  "id": 11,
+  "id": 6,
   "target": "#reset-button",
   "title": { "en": "Reset Experiment" },
   "description": {
@@ -135,7 +74,7 @@
   "placement": "right"
 },
 {
-  "id": 12,
+  "id": 7,
   "target": "#print-button",
   "title": { "en": "Print Page" },
   "description": {
@@ -144,6 +83,66 @@
   "audio": "#",
   "placement": "right"
 },
+    {
+      "id": 8,
+      "target": "#resistance-controls",
+      "title": {
+        "en": "Set Resistance Values First"
+      },
+      "description": {
+        "en": "Set R1, R2, and R3 before making connections. These resistance values must remain the same for all three cases in one experiment run."
+      },
+      "audio": "#",
+      "placement": "right"
+    },
+ {
+  "id": 9,
+  "target": "#current-source",
+  "title": {
+    "en": "Current Source"
+  },
+  "description": {
+    "en": "The current source supplies a fixed current to the circuit. During the Current Source Only case, activate this source and set the desired current value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
+  },
+  "audio": "#",
+  "placement": "left"
+},
+{
+  "id": 10,
+  "target": "#ammeters-walkthrough-target",
+  "title": { "en": "Ammeters A1, A2 and A3" },
+  "description": {
+    "en": "A1, A2 and A3 show the branch current readings. Note these values for Current Source Only, Voltage Source Only and Both Sources Active cases."
+  },
+  "audio": "#",
+  "placement": "bottom"
+},
+    {
+  "id": 11,
+  "target": "#power-supply-2",
+  "title": {
+    "en": "Voltage Source"
+  },
+  "description": {
+    "en": "The voltage source supplies a fixed voltage to the circuit. During the Voltage Source Only case, activate this source and set the desired voltage value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
+  },
+  "audio": "#",
+  "placement": "left"
+},
+
+    {
+      "id": 12,
+      "target": "#circuit-panel",
+      "title": {
+        "en": "Case-wise Circuit Wiring"
+      },
+      "description": {
+        "en": "Make and verify the circuit connections separately for each case: current source only, voltage source only, and both sources connected."
+      },
+      "audio": "#",
+      "placement": "left"
+    },
+   
     {
       "id": 13,
       "target": "#observation-table-panel",
