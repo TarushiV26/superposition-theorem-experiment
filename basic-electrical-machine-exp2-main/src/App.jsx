@@ -58,6 +58,7 @@ const App = () => {
   const [voltage, setVoltage] = useState(0)
   const [powerOn, setPowerOn] = useState(false)
   const [current, setCurrent] = useState(0)
+  const [autoFillTrigger, setAutoFillTrigger] = useState(0)
 const [currentSourceOn, setCurrentSourceOn] = useState(false)
 const [lockedCurrent, setLockedCurrent] = useState(null)
 const [lockedVoltage, setLockedVoltage] = useState(null)
@@ -81,6 +82,7 @@ const [lockedVoltage, setLockedVoltage] = useState(null)
   const [checkRequest, setCheckRequest] = useState(0)
   const [resetRequest, setResetRequest] = useState(0)
   const [connectionsVerified, setConnectionsVerified] = useState(false)
+  const [instructionStep, setInstructionStep] = useState('resistance')
   const [sessionStart, setSessionStart] = useState(() => Date.now())
   const voltageLimitWarningShownRef = useRef(false)
 
@@ -122,6 +124,12 @@ const [lockedVoltage, setLockedVoltage] = useState(null)
   observations.voltageSourceOnly,
   observations.bothSources,
 ].filter(Boolean).length
+
+const isCase3InProgress = (
+  observations.currentSourceOnly &&
+  observations.voltageSourceOnly &&
+  !observations.bothSources
+)
 
 const canPlotGraph = readingCount >= 3
 
@@ -192,7 +200,7 @@ const canPlotGraph = readingCount >= 3
     },
   }))
   setLockedCurrent(current)
-
+  setInstructionStep('case1-turn-off-current')
   setStatus('Current source only reading saved.')
 
   showStepAlert({
@@ -228,6 +236,7 @@ else if (powerOn && !currentSourceOn) {
     },
   }))
     setLockedVoltage(voltage)
+  setInstructionStep('case2-turn-off-voltage')
   setStatus('Voltage source only reading saved.')
 
   showStepAlert({
@@ -263,7 +272,7 @@ else if (powerOn && currentSourceOn) {
       r3,
     },
   }))
-
+   setInstructionStep('calculate-button')
   setStatus('Both sources reading saved.')
 
   showStepAlert({
@@ -361,6 +370,7 @@ setLockedVoltage(null)
     setConnectionsVerified(false)
     setResetRequest((current) => current + 1)
     setSessionStart(Date.now())
+    setInstructionStep('resistance')
     voltageLimitWarningShownRef.current = false
     setStatus('Simulation reset. Set R1, R2 and R3 before making circuit connections.')
     //showStepAlert(EXPERIMENT_ALERTS.resetSuccess)
@@ -411,6 +421,11 @@ setLockedVoltage(null)
   }
 
   window.print()
+}
+const handleCalculate = () => {
+  setAutoFillTrigger((prev) => prev + 1)
+
+  setInstructionStep('calculation-enter-source-values')
 }
 
   const handleGenerateReport = () => {
@@ -474,7 +489,13 @@ setLockedVoltage(null)
     }*/
    if (result.isCorrect) {
   setConnectionsVerified(true)
-
+  if (!observations.currentSourceOnly) {
+  setInstructionStep('case1-turn-on-current')
+} else if (!observations.voltageSourceOnly) {
+  setInstructionStep('case2-turn-on-voltage')
+} else {
+  setInstructionStep('case3-turn-on-both')
+}
   setStatus(
     'Connections verified. Now switch ON the required source for this case.',
   )
@@ -508,7 +529,7 @@ setLockedVoltage(null)
     showStepAlert(EXPERIMENT_ALERTS.connectionErrorFound, {
       description: `Matched ${result.matchedCount} of 8 required wire pairs from ${result.totalConnections} total wires.`,
     })
-  }, [showStepAlert])
+  }, [observations, showStepAlert])
 
   const handleCheck = () => {
     if (!resistanceSet) {
@@ -550,17 +571,29 @@ setLockedVoltage(null)
   }
 
   if (currentSourceOn) {
-    setCurrentSourceOn(false)
-    setCurrent(0)
-    setStatus('Current source switched off.')
-    return
+  setCurrentSourceOn(false)
+  //setCurrent(0)
+
+  if (observations.currentSourceOnly && !observations.voltageSourceOnly) {
+    setInstructionStep('case2-connections')
   }
+
+  setStatus('Current source switched off.')
+  return
+}
 
   setCurrentSourceOn(true)
 
-if (lockedCurrent !== null && observations.currentSourceOnly && observations.voltageSourceOnly) {
-  setCurrent(lockedCurrent)
+if (isCase3InProgress) {
+  if (lockedCurrent !== null) {
+    setCurrent(lockedCurrent)
+  }
+
+  setInstructionStep('case3-turn-on-both')
+  return
 }
+
+setInstructionStep('case1-set-current')
 
 setStatus('Current source switched on. Adjust current and add the reading.')
 showStepAlert(EXPERIMENT_ALERTS.currentSourceOn)
@@ -599,18 +632,30 @@ showStepAlert(EXPERIMENT_ALERTS.currentSourceOn)
   }
 
   if (powerOn) {
-    setPowerOn(false)
-    setVoltage(0)
-    voltageLimitWarningShownRef.current = false
-    setStatus('Voltage source switched off.')
-    return
+  setPowerOn(false)
+  //setVoltage(0)
+  voltageLimitWarningShownRef.current = false
+
+  if (observations.currentSourceOnly && observations.voltageSourceOnly && !observations.bothSources) {
+    setInstructionStep('case3-connections')
   }
+
+  setStatus('Voltage source switched off.')
+  return
+}
 
   setPowerOn(true)
 
-if (lockedVoltage !== null && observations.currentSourceOnly && observations.voltageSourceOnly) {
-  setVoltage(lockedVoltage)
+if (isCase3InProgress) {
+  if (lockedVoltage !== null) {
+    setVoltage(lockedVoltage)
+  }
+
+  setInstructionStep('case3-add-reading')
+  return
 }
+
+setInstructionStep('case2-set-voltage')
 
 setStatus('Voltage source switched on. Adjust voltage and add the reading.')
 showStepAlert(EXPERIMENT_ALERTS.powerOn)
@@ -629,6 +674,13 @@ showStepAlert(EXPERIMENT_ALERTS.powerOn)
 }
     setAutoConnectRequest((current) => current + 1)
     setConnectionsVerified(false)
+    if (!observations.currentSourceOnly) {
+  setInstructionStep('case1-check')
+} else if (!observations.voltageSourceOnly) {
+  setInstructionStep('case2-check')
+} else {
+  setInstructionStep('case3-check')
+}
 
     setStatus(
       'Default connections added using jsPlumb. Click CHECK to validate and lock the circuit.',
@@ -685,15 +737,17 @@ showStepAlert(EXPERIMENT_ALERTS.powerOn)
             <section className="workspace-grid">
               <aside className="left-panel">
                 <ActionButtons
-                  disabledButtons={{
-                    onAdd: false,
-                   onAutoConnect: powerOn || currentSourceOn,
-                    onCheck: false,
-                    onPlot: false,
-                    onPrint: false,
-                  }}
+  instructionStep={instructionStep}
+  disabledButtons={{
+    onAdd: false,
+    onAutoConnect: powerOn || currentSourceOn,
+    onCheck: false,
+    onPlot: false,
+    onPrint: false,
+  }}
                   onAdd={recordObservation}
                   onCheck={handleCheck}
+                  onCalculate={handleCalculate}
                   onPlot={handlePlot}
                   onPrint={handlePrint}
                   onReset={handleReset}
@@ -717,14 +771,17 @@ showStepAlert(EXPERIMENT_ALERTS.powerOn)
                   setR1={(value) => {
   setR1(value)
   setResistanceSet(true)
+  setInstructionStep('case1-connections')
 }}
 setR2={(value) => {
   setR2(value)
   setResistanceSet(true)
+  setInstructionStep('case1-connections')
 }}
 setR3={(value) => {
   setR3(value)
   setResistanceSet(true)
+  setInstructionStep('case1-connections')
 }}
                 />
               </aside>
@@ -737,7 +794,18 @@ setR3={(value) => {
                   observations={observations}
                   powerOn={powerOn}
                   current={current}
-                  setCurrent={setCurrent}
+                  setCurrent={(value) => {
+  setCurrent(value)
+
+  if (isCase3InProgress) {
+    setInstructionStep('case3-add-reading')
+    return
+  }
+
+  if (currentSourceOn && !powerOn) {
+    setInstructionStep('case1-add-reading')
+  }
+}}
                   currentSourceOn={currentSourceOn}
                   onToggleCurrentSource={handleToggleCurrentSource}
                   r1={r1}
@@ -747,7 +815,18 @@ setR3={(value) => {
                   resetRequest={resetRequest}
                   scale={scale}
                   onTogglePower={handleTogglePower}
-                  setVoltage={handleVoltageChange}
+                  setVoltage={(value) => {
+  handleVoltageChange(value)
+
+  if (isCase3InProgress) {
+    setInstructionStep('case3-add-reading')
+    return
+  }
+
+  if (powerOn && !currentSourceOn) {
+    setInstructionStep('case2-add-reading')
+  }
+}}
                   voltage={voltage}
                 />
               </section>
@@ -759,7 +838,18 @@ setR3={(value) => {
 />
 
           </main>
-          <CalculationPanel observations={observations} />
+          <CalculationPanel
+  observations={observations}
+  resistanceValues={{
+    r1,
+    r2,
+    r3,
+  }}
+  currentValue={lockedCurrent}
+  voltageValue={lockedVoltage}
+  autoFillTrigger={autoFillTrigger}
+  setInstructionStep={setInstructionStep}
+/>
 
           {/* <GraphPanel
             className="graph-panel--separate"

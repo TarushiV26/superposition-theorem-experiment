@@ -16,7 +16,7 @@ import {
 const buttons = [
   {
     id: 'instruction-button',
-    label: 'INSTRUCTION',
+    label: 'INSTRUCTIONS',
     tone: 'action-button--gold',
     Icon: ButtonIcon,
     opensInstructions: true,
@@ -35,6 +35,13 @@ const buttons = [
     Icon: CheckIcon,
     handlerName: 'onCheck',
   },
+  {
+  id: 'calculate-button',
+  label: 'CALCULATE',
+  tone: 'action-button--orange',
+  Icon: TableIcon,
+  handlerName: 'onCalculate',
+},
   {
     id: 'auto-connect-button',
     label: 'AUTO CONNECT',
@@ -76,8 +83,10 @@ const buttons = [
 
 const ActionButtons = ({
   disabledButtons = {},
+  instructionStep,
   onAdd,
   onCheck,
+  onCalculate,
   onPlot,
   onPrint,
   onReset,
@@ -88,6 +97,7 @@ const ActionButtons = ({
   const handlers = {
     onAdd,
     onCheck,
+    onCalculate,
     onPlot,
     onPrint,
     onReset,
@@ -148,79 +158,88 @@ const ActionButtons = ({
 
           <div className="action-instructions-panel__body">
             <ol className="action-instructions-panel__steps">
-  <li>
-    <strong>IMPORTANT:</strong> Set R1, R2 and R3 before starting. Keep the same resistance values for Current Source Only, Voltage Source Only and Both Sources cases.
-  </li>
+ <li className={instructionStep === 'important' ? 'instruction-step--active' : ''}>
+  <strong>IMPORTANT:</strong> Set R1, R2 and R3 before starting. Keep the same resistance values for Current Source Only, Voltage Source Only and Both Sources cases.
+</li>
 
-  <li>
-    <strong>STEP 1:</strong> Set R1, R2 and R3 using the resistance sliders.
-  </li>
+<li className={instructionStep === 'resistance' ? 'instruction-step--active' : ''}>
+  <strong>STEP 1:</strong> Set R1, R2 and R3 using the resistance sliders.
+</li>
 
-  <li>
-    <strong>CASE 1:</strong> Current source active and voltage source short-circuited.
-    <ol className="action-instructions-panel__substeps" type="a">
-      <li>Connect current source: 1-9 and 2-10.</li>
-      <li>Short voltage source terminals: 17-18.</li>
-      <li>Connect ammeters: 3-11, 4-12; 5-13, 6-14; 7-15, 8-16.</li>
-      <li>Click CHECK.</li>
-      <li>Turn ON current source only and keep voltage source OFF.</li>
-      <li>Set the required current value.</li>
-      <li>Click ADD to save I1, I2 and I3 for Current Source Only.</li>
-      <li>Turn OFF current source and remove the short connection 17-18.</li>
-    </ol>
-  </li>
+<li className={instructionStep?.startsWith('case1') || instructionStep === 'check-connections' || instructionStep === 'switch-source' ? 'instruction-step--active' : ''}>
+  <strong>CASE 1:</strong> Current source active and voltage source short-circuited.
+  <ol className="action-instructions-panel__substeps" type="a">
+    <li className={instructionStep === 'case1-connections' ? 'instruction-substep--active' : ''}>Connect current source: 1-9 and 2-10.</li>
+    <li className={instructionStep === 'case1-connections' ? 'instruction-substep--active' : ''}>Short voltage source terminals: 17-18.</li>
+    <li className={instructionStep === 'case1-connections' ? 'instruction-substep--active' : ''}>Connect ammeters: 3-11, 4-12; 5-13, 6-14; 7-15, 8-16.</li>
+    <li className={instructionStep === 'case1-check' ? 'instruction-substep--active' : ''}>
+  Click CHECK.
+</li>
+    <li className={instructionStep === 'case1-turn-on-current' || instructionStep === 'switch-source' ? 'instruction-substep--active' : ''}>Turn ON current source only and keep voltage source OFF.</li>
+    <li className={instructionStep === 'case1-set-current' ? 'instruction-substep--active' : ''}>Set the required current value.</li>
+    <li className={instructionStep === 'case1-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I1, I2 and I3 for Current Source Only.</li>
+    <li className={instructionStep === 'case1-turn-off-current' ? 'instruction-substep--active' : ''}>Turn OFF current source and remove the short connection 17-18.</li>
+  </ol>
+</li>
 
-  <li>
-    <strong>CASE 2:</strong> Voltage source active and current source open.
-    <ol className="action-instructions-panel__substeps" type="a">
-      <li>Connect voltage source: 17-19 and 18-20.</li>
-      <li>Keep current source terminals open.</li>
-      <li>Keep ammeter connections same.</li>
-      <li>Click CHECK.</li>
-      <li>Turn ON voltage source only and keep current source OFF.</li>
-      <li>Set the required voltage value.</li>
-      <li>Click ADD to save I1, I2 and I3 for Voltage Source Only.</li>
-      <li>Turn OFF voltage source.</li>
-    </ol>
-  </li>
+<li className={instructionStep?.startsWith('case2') ? 'instruction-step--active' : ''}>
+  <strong>CASE 2:</strong> Voltage source active and current source open.
+  <ol className="action-instructions-panel__substeps" type="a">
+    <li className={instructionStep === 'case2-connections' ? 'instruction-substep--active' : ''}>Connect voltage source: 17-19 and 18-20.</li>
+    <li className={instructionStep === 'case2-connections' ? 'instruction-substep--active' : ''}>Keep current source terminals open.</li>
+    <li className={instructionStep === 'case2-connections' ? 'instruction-substep--active' : ''}>Keep ammeter connections same.</li>
+    <li className={instructionStep === 'case2-check' ? 'instruction-substep--active' : ''}>Click CHECK.</li>
+    <li className={instructionStep === 'case2-turn-on-voltage' ? 'instruction-substep--active' : ''}>Turn ON voltage source only and keep current source OFF.</li>
+    <li className={instructionStep === 'case2-set-voltage' ? 'instruction-substep--active' : ''}>Set the required voltage value.</li>
+    <li className={instructionStep === 'case2-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I1, I2 and I3 for Voltage Source Only.</li>
+    <li className={instructionStep === 'case2-turn-off-voltage' ? 'instruction-substep--active' : ''}>Turn OFF voltage source.</li>
+  </ol>
+</li>
 
-  <li>
-    <strong>CASE 3:</strong> Both voltage and current sources active.
-    <ol className="action-instructions-panel__substeps" type="a">
-      <li>Connect current source: 1-9 and 2-10.</li>
-      <li>Connect voltage source: 17-19 and 18-20.</li>
-      <li>Keep ammeter connections same.</li>
-      <li>Click CHECK.</li>
-      <li>Turn ON both sources.</li>
-      <li>Use the same current value used in Case 1 and the same voltage value used in Case 2.</li>
-      <li>Click ADD to save I1, I2 and I3 for Both Sources Connected.</li>
-    </ol>
-  </li>
+<li className={instructionStep?.startsWith('case3') ? 'instruction-step--active' : ''}>
+  <strong>CASE 3:</strong> Both voltage and current sources active.
+  <ol className="action-instructions-panel__substeps" type="a">
+    <li className={instructionStep === 'case3-connections' ? 'instruction-substep--active' : ''}>Connect current source: 1-9 and 2-10.</li>
+    <li className={instructionStep === 'case3-connections' ? 'instruction-substep--active' : ''}>Connect voltage source: 17-19 and 18-20.</li>
+    <li className={instructionStep === 'case3-connections' ? 'instruction-substep--active' : ''}>Keep ammeter connections same.</li>
+    <li className={instructionStep === 'case3-check' ? 'instruction-substep--active' : ''}>Click CHECK.</li>
+    <li className={instructionStep === 'case3-turn-on-both' ? 'instruction-substep--active' : ''}>Turn ON both sources.</li>
+    <li className={instructionStep === 'case3-use-locked-values' ? 'instruction-substep--active' : ''}>Use the same current value used in Case 1 and the same voltage value used in Case 2.</li>
+    <li className={instructionStep === 'case3-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I1, I2 and I3 for Both Sources Connected.</li>
+  </ol>
+</li>
 
-  <li>
-    <strong>STEP 2:</strong> Check the observation table. It should contain three rows: Current Source Only, Voltage Source Only and Both Sources Active.
-  </li>
+<li className={
+  instructionStep === 'observation-table' ||
+  instructionStep === 'calculate-button'
+    ? 'instruction-step--active'
+    : ''
+}>
+  <strong>STEP 2:</strong> Check the observation table. Then click CALCULATE to auto-fill the calculation panel.
+</li>
 
-  <li>
-    <strong>STEP 3:</strong> Go to the Calculation Panel below the simulation.
-    <ol className="action-instructions-panel__substeps" type="a">
-      <li>Enter R1, R2, R3, current source value and voltage source value used during the experiment.</li>
-      <li>Enter the branch currents obtained in Current Source Only and Voltage Source Only cases.</li>
-      <li>Use the + / − toggle according to current direction.</li>
-      <li>Use + when the component current is in the same direction as the assumed branch current.</li>
-      <li>Use − when the component current is opposite to the assumed branch current.</li>
-      <li>Enter your final calculated I1, I2 and I3 values.</li>
-      <li>Click VERIFY to compare your calculation with the Both Sources Connected readings.</li>
-    </ol>
-  </li>
+<li className={instructionStep?.startsWith('calculation') ? 'instruction-step--active' : ''}>
+  <li className={instructionStep === 'calculation-enter-source-values' ? 'instruction-substep--active' : ''}>
+  Click CALCULATE to auto-fill resistance values, source values, and observed branch currents.
+</li>
+<li className={instructionStep === 'calculation-toggle-sign' ? 'instruction-substep--active' : ''}>
+  Use the + / − toggle according to current direction.
+</li>
+<li className={instructionStep === 'calculation-enter-final-values' ? 'instruction-substep--active' : ''}>
+  Enter your final calculated I1, I2 and I3 values.
+</li>
+<li className={instructionStep === 'calculation-verify' ? 'instruction-substep--active' : ''}>
+  Click VERIFY to compare your calculation with the Both Sources Connected readings.
+</li>
+</li>
 
-  <li>
-    <strong>STEP 4:</strong> If calculated values match the measured Both Sources readings, the Superposition Theorem is verified.
-  </li>
+<li className={instructionStep === 'verified' ? 'instruction-step--active' : ''}>
+  <strong>STEP 4:</strong> If calculated values match the measured Both Sources readings, the Superposition Theorem is verified.
+</li>
 
-  <li>
-    <strong>STEP 5:</strong> Click PRINT to print the webpage or RESET to restart the experiment.
-  </li>
+<li className={instructionStep === 'print-reset' ? 'instruction-step--active' : ''}>
+  <strong>STEP 5:</strong> Click PRINT to print the webpage or RESET to restart the experiment.
+</li>
 </ol>
           </div>
         </div>

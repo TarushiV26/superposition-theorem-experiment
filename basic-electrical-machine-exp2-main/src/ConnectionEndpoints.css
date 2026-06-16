@@ -346,6 +346,7 @@
 .connection-terminal--endpoint-1 {
   --terminal-base-top: 108px;
   --terminal-base-left: 45px;
+  z-index: 170px;
 }
 
 .connection-lab .jtk-endpoint--terminal-2,
@@ -733,4 +734,47 @@
 .connection-terminal--endpoint-18 {
   --terminal-size: 32px;
   --jtk-endpoint-radius: 10;
+}
+/*.connection-terminal--endpoint-1::after,
+.connection-terminal--endpoint-2::after,
+.connection-terminal--endpoint-19::after,
+.connection-terminal--endpoint-20::after {
+  content: attr(data-terminal-number);
+  position: absolute;
+  z-index: 99999;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffffff !important;
+  background: var(--terminal-accent) !important;
+  font-size: 12px;
+  font-weight: 900;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}*/
+.terminal-number-label--endpoint-1,
+.terminal-number-label--endpoint-2,
+.terminal-number-label--endpoint-19,
+.terminal-number-label--endpoint-20 {
+  z-index: 999999 !important;
+  transform: translateX(-50%) translateZ(0);
+  will-change: transform;
+  isolation: isolate;
+  background: #ffffff !important;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 4px 10px rgba(15, 23, 42, 0.32) !important;
+}
+.connection-lab .jtk-connector,
+.connection-lab svg.jtk-connector {
+  z-index: 10 !important;
+}
+
+.connection-lab .jtk-overlay {
+  z-index: 11 !important;
 }

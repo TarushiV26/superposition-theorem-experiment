@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import SectionCard from './SectionCard.jsx'
 
 const branches = [
@@ -11,7 +11,7 @@ const format = (value) => (
   Number.isFinite(Number(value)) ? Number(value).toFixed(3) : ''
 )
 
-const CalculationPanel = ({ observations }) => {
+const CalculationPanel = ({ observations, resistanceValues, currentValue, voltageValue, autoFillTrigger, setInstructionStep }) => {
   const [sourceValues, setSourceValues] = useState({
     r1: '',
     r2: '',
@@ -36,6 +36,33 @@ const CalculationPanel = ({ observations }) => {
   const both = observations.bothSources
   const isReady = Boolean(both)
 
+  useEffect(() => {
+  if (!autoFillTrigger) return
+
+  setSourceValues({
+    r1: resistanceValues.r1,
+    r2: resistanceValues.r2,
+    r3: resistanceValues.r3,
+    current: currentValue,
+    voltage: voltageValue,
+  })
+
+  setReadings((prev) => ({
+    ...prev,
+
+    currentSourceOnly: {
+      i1: observations.currentSourceOnly?.i1?.toFixed(3) ?? '',
+      i2: observations.currentSourceOnly?.i2?.toFixed(3) ?? '',
+      i3: observations.currentSourceOnly?.i3?.toFixed(3) ?? '',
+    },
+
+    voltageSourceOnly: {
+      i1: observations.voltageSourceOnly?.i1?.toFixed(3) ?? '',
+      i2: observations.voltageSourceOnly?.i2?.toFixed(3) ?? '',
+      i3: observations.voltageSourceOnly?.i3?.toFixed(3) ?? '',
+    },
+  }))
+}, [autoFillTrigger])
   const updateSourceValue = (key, value) => {
     setSourceValues((prev) => ({
       ...prev,
@@ -95,10 +122,11 @@ return operators[branch] === '+'
   const allCorrect = branches.every((branch) => isCorrect(branch.key))
 
   if (allCorrect) {
-    setVerificationMessage('✓ Superposition Theorem verified successfully.')
-  } else {
-    setVerificationMessage('✗ Check your signs and calculated current values.')
-  }
+  setVerificationMessage('✓ Superposition Theorem verified successfully.')
+  setInstructionStep?.('verified')
+} else {
+  setVerificationMessage('✗ Check your signs and calculated current values.')
+}
 }
 
   return (
@@ -276,6 +304,9 @@ return operators[branch] === '+'
                   </table>
                   </div>
                   </div>
+                  <div className="copyright-footer">
+  © 2026 Virtual Lab | IIT Roorkee
+</div>
                  </SectionCard>
                    )
                   }

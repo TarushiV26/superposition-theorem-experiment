@@ -22,10 +22,14 @@ const CurrentSource = ({
   return (
     <article className="current-source" id="current-source">
       <img
-        alt={powerOn ? `${label} switched on` : `${label} switched off`}
-        className="current-source__image"
-        src={powerOn ? currentSourceOn : currentSourceOff}
-      />
+  alt={powerOn ? `${label} switched on` : `${label} switched off`}
+  className={`current-source__image ${
+    powerOn
+      ? 'current-source__image--on'
+      : 'current-source__image--off'
+  }`}
+  src={powerOn ? currentSourceOn : currentSourceOff}
+/>
 
       <div className="current-source__display">
   <img
@@ -43,10 +47,12 @@ const CurrentSource = ({
         id={`${positiveTerminal}-endpoint`}
         className={`connection-terminal connection-terminal--meter connection-terminal--meter-plus connection-terminal--endpoint-${positiveTerminal}`}
         data-polarity="plus"
+        data-terminal-number={positiveTerminal}
       />
       <span
         className={`terminal-number-label terminal-number-label--meter-plus terminal-number-label--endpoint-${positiveTerminal}`}
         data-terminal-id={`${positiveTerminal}-endpoint`}
+        title={`Current Source Positive ${positiveTerminal}`}
       >
         {positiveTerminal}
       </span>
@@ -55,10 +61,12 @@ const CurrentSource = ({
         id={`${negativeTerminal}-endpoint`}
         className={`connection-terminal connection-terminal--meter connection-terminal--meter-minus connection-terminal--endpoint-${negativeTerminal}`}
         data-polarity="minus"
+        data-terminal-number={negativeTerminal}
       />
       <span
         className={`terminal-number-label terminal-number-label--meter-minus terminal-number-label--endpoint-${negativeTerminal}`}
         data-terminal-id={`${negativeTerminal}-endpoint`}
+        title={`Current Source Negative ${negativeTerminal}`}
       >
         {negativeTerminal}
       </span>

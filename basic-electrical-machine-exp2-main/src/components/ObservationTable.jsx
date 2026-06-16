@@ -18,9 +18,15 @@ const CASE_ROWS = [
   },
 ]
 
-const formatCurrent = (value) => (
-  Number.isFinite(Number(value)) ? Number(value).toFixed(3) : ''
-)
+const formatCurrent = (value) => {
+  const number = Number(value)
+
+  if (!Number.isFinite(number)) {
+    return ''
+  }
+
+  return Number(number.toFixed(3)).toString()
+}
 
 const ObservationTable = ({ observations = {} }) => (
   <SectionCard className="observation-card-compact" icon="table" id="observation-table-panel" title="OBSERVATION TABLE">

@@ -29,12 +29,12 @@ const PowerSupply = ({
         className={`connection-terminal connection-terminal--power connection-terminal--power-plus connection-terminal--endpoint-${positiveTerminal}`}
         data-polarity="plus"
         aria-label={`Power supply positive terminal ${positiveTerminal}`}
-        title={`Power positive (${positiveTerminal}-endpoint)`}
+        title={`Voltage positive`}
       />
       <span
         className={`terminal-number-label terminal-number-label--power-plus terminal-number-label--endpoint-${positiveTerminal}`}
         data-terminal-id={`${positiveTerminal}-endpoint`}
-        title={`Power positive (${positiveTerminal}-endpoint)`}
+        title={`Voltage positive`}
       >
         {positiveTerminal}
       </span>
@@ -44,12 +44,12 @@ const PowerSupply = ({
         className={`connection-terminal connection-terminal--power connection-terminal--power-minus connection-terminal--endpoint-${negativeTerminal}`}
         data-polarity="minus"
         aria-label={`Power supply negative terminal ${negativeTerminal}`}
-        title={`Power negative (${negativeTerminal}-endpoint)`}
+        title={`Voltagenegative`}
       />
       <span
         className={`terminal-number-label terminal-number-label--power-minus terminal-number-label--endpoint-${negativeTerminal}`}
         data-terminal-id={`${negativeTerminal}-endpoint`}
-        title={`Power negative (${negativeTerminal}-endpoint)`}
+        title={`Voltage negative`}
       >
         {negativeTerminal}
       </span>

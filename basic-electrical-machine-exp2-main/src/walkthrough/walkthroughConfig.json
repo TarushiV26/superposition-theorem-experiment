@@ -28,8 +28,17 @@
   "audio": "#",
   "placement": "right"
 },
+{
+  "id": 3,
+  "target": "#ai-guide-button",
+  "title": { "en": "AI Guide" },
+  "description": {
+    "en": "Click AI Guide to get step-by-step help during the experiment."
+  },
+  "placement": "bottom"
+},
     {
-      "id": 3,
+      "id": 4,
       "target": "#check-button",
       "title": {
         "en": "Check Connections"
@@ -40,8 +49,18 @@
       "audio": "#",
       "placement": "right"
     },
+    
+{
+  "id": 5,
+  "target": "#calculate-button",
+  "title": { "en": "Calculate" },
+  "description": {
+    "en": "Click Calculate after completing all observations. It auto-fills resistance values, source values and observed currents in the Calculation Panel."
+  },
+  "placement": "bottom"
+},
     {
-  "id": 4,
+  "id": 6,
   "target": "#auto-connect-button",
   "title": { "en": "Auto Connect" },
   "description": {
@@ -51,7 +70,7 @@
   "placement": "right"
 },
     {
-      "id": 5,
+      "id": 7,
       "target": "#add-reading-button",
       "title": {
         "en": "Add Reading"
@@ -64,7 +83,7 @@
     },
 
 {
-  "id": 6,
+  "id": 8,
   "target": "#reset-button",
   "title": { "en": "Reset Experiment" },
   "description": {
@@ -74,7 +93,7 @@
   "placement": "right"
 },
 {
-  "id": 7,
+  "id": 9,
   "target": "#print-button",
   "title": { "en": "Print Page" },
   "description": {
@@ -84,7 +103,7 @@
   "placement": "right"
 },
     {
-      "id": 8,
+      "id": 10,
       "target": "#resistance-controls",
       "title": {
         "en": "Set Resistance Values First"
@@ -96,7 +115,7 @@
       "placement": "right"
     },
  {
-  "id": 9,
+  "id": 11,
   "target": "#current-source",
   "title": {
     "en": "Current Source"
@@ -108,7 +127,7 @@
   "placement": "left"
 },
 {
-  "id": 10,
+  "id": 12,
   "target": "#ammeters-walkthrough-target",
   "title": { "en": "Ammeters A1, A2 and A3" },
   "description": {
@@ -118,7 +137,7 @@
   "placement": "bottom"
 },
     {
-  "id": 11,
+  "id": 13,
   "target": "#power-supply-2",
   "title": {
     "en": "Voltage Source"
@@ -131,7 +150,7 @@
 },
 
     {
-      "id": 12,
+      "id": 14,
       "target": "#circuit-panel",
       "title": {
         "en": "Case-wise Circuit Wiring"
@@ -144,7 +163,7 @@
     },
    
     {
-      "id": 13,
+      "id": 15,
       "target": "#observation-table-panel",
       "title": {
         "en": "Observation Table"
@@ -156,7 +175,7 @@
       "placement": "right"
     },
     {
-      "id": 14,
+      "id": 16,
       "target": "#calculation-panel",
       "title": {
         "en": "Calculation Panel"
@@ -168,7 +187,7 @@
       "placement": "top"
     },
     {
-      "id": 15,
+      "id": 17,
       "target": "#generate-report-button",
       "title": {
         "en": "Generate Report"
