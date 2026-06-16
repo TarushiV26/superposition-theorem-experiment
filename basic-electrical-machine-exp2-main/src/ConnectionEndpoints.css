@@ -344,7 +344,7 @@
 }
 
 .connection-terminal--endpoint-1 {
-  --terminal-base-top: 108px;
+  --terminal-base-top: 114px;
   --terminal-base-left: 45px;
   z-index: 170px;
 }
@@ -356,7 +356,7 @@
 }
 
 .connection-terminal--endpoint-2 {
-  --terminal-base-top: 108px;
+  --terminal-base-top: 114px;
   --terminal-base-left: 75px;
 }
 
