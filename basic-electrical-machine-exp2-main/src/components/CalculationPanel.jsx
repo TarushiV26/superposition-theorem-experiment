@@ -7,9 +7,15 @@ const branches = [
   { key: 'i3', label: 'I₃ (A)' },
 ]
 
-const format = (value) => (
-  Number.isFinite(Number(value)) ? Number(value).toFixed(3) : ''
-)
+const format = (value) => {
+  const number = Number(value)
+
+  if (!Number.isFinite(number)) {
+    return ''
+  }
+
+  return Number(number.toFixed(3)).toString()
+}
 
 const CalculationPanel = ({ observations, resistanceValues, currentValue, voltageValue, autoFillTrigger, setInstructionStep }) => {
   const [sourceValues, setSourceValues] = useState({

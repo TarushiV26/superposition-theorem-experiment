@@ -1114,6 +1114,9 @@ export const generateKclReport = ({ observations, resistances, sessionStart }) =
   return true
 }
 export const generateSuperpositionReport = ({ observations, resistances, sessionStart }) => {
+  const baseHref = new URL(import.meta.env.BASE_URL, window.location.origin).href
+const iitLogoSrc = new URL('../assets/IIT Logo.png', import.meta.url).href
+const virtualLabsLogoSrc = new URL('../assets/image.png', import.meta.url).href
   const reportDate = new Date()
   const sessionEnd = reportDate.getTime()
   const durationText = getSessionDurationText(sessionStart, sessionEnd)
@@ -1145,7 +1148,45 @@ export const generateSuperpositionReport = ({ observations, resistances, session
 <html>
 <head>
   <title>Superposition Theorem Report</title>
+
+  <base href="${escapeHtml(baseHref)}">
+  
   <style>
+    .header {
+  display: grid;
+  grid-template-columns: 190px 1fr 110px;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 3px solid #2563eb;
+  margin-bottom: 22px;
+}
+
+.logo-vlab {
+  width: 180px;
+  max-height: 85px;
+  object-fit: contain;
+}
+
+.logo-iit {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  justify-self: end;
+}
+
+.title-block {
+  text-align: center;
+}
+
+.title-block h1 {
+  margin: 0;
+  color: #17324d;
+}
+
+.title-block .sub {
+  margin: 8px 0 0;
+}
     body {
       font-family: Arial, sans-serif;
       padding: 28px;
@@ -1253,10 +1294,25 @@ export const generateSuperpositionReport = ({ observations, resistances, session
 </head>
 <body>
   <div class="report">
+    <div class="header">
+  <img
+    src="${escapeHtml(virtualLabsLogoSrc)}"
+    class="logo-vlab"
+    alt="Virtual Labs Logo"
+  >
+
+  <div class="title-block">
     <h1>Virtual Labs Simulation Report</h1>
     <p class="sub">Basic Electrical Science Lab</p>
-
     <h2>Verification of Superposition Theorem</h2>
+  </div>
+
+  <img
+    src="${escapeHtml(iitLogoSrc)}"
+    class="logo-iit"
+    alt="IIT Roorkee Logo"
+  >
+</div>
 
     <!--<div class="info">
       <div class="card">R1 = ${formatNumber(r1, 0)} Ω</div>
