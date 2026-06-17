@@ -1765,13 +1765,13 @@ textarea {
 }
 .copyright-footer {
   margin-top: 16px;
-  padding-top: 12px;
-  padding-bottom: 8px;
+  padding-top: 27px;
+  padding-bottom: -3px;
 
   border-top: 1px solid rgba(90, 70, 55, 0.2);
 
   text-align: center;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 600;
   color: #5a4637;
 }

@@ -36,9 +36,9 @@ const ObservationTable = ({ observations = {} }) => (
           <tr>
             <th>S.No</th>
             <th>Case</th>
-            <th>I<sub>1</sub>(A)</th>
-            <th>I<sub>2</sub>(A)</th>
-            <th>I<sub>3</sub>(A)</th>
+            <th>I<sub>1</sub> (A)</th>
+            <th>I<sub>2</sub> (A)</th>
+            <th>I<sub>3</sub> (A)</th>
           </tr>
         </thead>
 
