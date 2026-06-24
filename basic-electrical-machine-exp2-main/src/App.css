@@ -1694,14 +1694,14 @@ input:focus-visible {
   letter-spacing: 1px;
 }
 .observation-card-compact {
-  top:95px;
+  top:80px;
   /*position: relative;*/
   height: 270px;
   min-height: 270px;
 }
 .resistance-card {
   position: relative;
-  top: 65px; 
+  top: 50px; 
 }
 .sign-toggle--unset {
   font-size: 18px;
@@ -1748,7 +1748,7 @@ textarea {
 .instruction-step--active > strong {
   color: #92400e;
 }
-.action-instructions-panel__substeps > li.instruction-substep--active {
+.action-instructions-panel__substeps li.instruction-substep--active {
   background: #dcfce7;
   border-left: 4px solid #22c55e;
   border-radius: 7px;
@@ -1791,4 +1791,193 @@ textarea {
 }
 .current-source__image--off {
   height: 174px;
+}
+.action-instructions-panel__substeps ol {
+  list-style-type: lower-alpha;
+  margin: 6px 0 0 20px;
+  padding-left: 18px;
+}
+
+.action-instructions-panel__substeps ol > li {
+  display: list-item;
+  list-style-position: outside;
+  margin-bottom: 4px;
+  padding-left: 2px;
+}
+.instruction-case-list {
+  list-style: none;
+  margin-left: 0;
+}
+.verify-button:disabled {
+  background: linear-gradient(180deg, #cfd8dc, #9aa4aa) !important;
+  color: #6b7280 !important;
+  cursor: not-allowed;
+  opacity: 0.75;
+  box-shadow: none;
+}
+.current-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+.formula-button {
+  position: absolute;
+  left: 70px;
+  bottom: 17px;
+  z-index: 4;
+
+  display: inline-flex;
+  min-width: 150px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: 2px solid rgba(81, 45, 22, 0.42);
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(180deg, #23b7e3, #075a9a);
+
+  font-size: 14px;
+  font-weight: 900;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.42),
+    inset 0 -8px 13px rgba(0, 0, 0, 0.2),
+    0 4px 7px rgba(37, 22, 13, 0.42);
+
+  cursor: pointer;
+}
+
+.formula-button:hover {
+  filter: brightness(1.07);
+}
+
+.formula-button:active {
+  transform: translateY(2px);
+}
+
+.formula-panel {
+  position: absolute;
+  top: 325px;
+  left: 40px;
+  z-index: 22;
+
+  width: 470px;
+  max-height: 590px;
+  overflow: hidden;
+
+  border: 2px solid rgba(92, 55, 27, 0.48);
+  border-radius: 14px;
+  color: #332015;
+
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.99), rgba(240, 226, 202, 0.99)),
+    radial-gradient(circle at 18% 0, rgba(255, 255, 255, 0.92), transparent 42%);
+
+  box-shadow:
+    inset 0 0 0 3px rgba(184, 150, 105, 0.16),
+    0 12px 24px rgba(43, 24, 11, 0.38);
+}
+
+.formula-panel__header {
+  display: flex;
+  height: 50px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 0 18px;
+  border-bottom: 1px solid rgba(114, 78, 48, 0.22);
+  background: linear-gradient(180deg, rgba(255, 247, 232, 0.96), rgba(225, 200, 164, 0.8));
+}
+
+.formula-panel__header h3 {
+  margin: 0;
+  color: #422817;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.formula-panel__close {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+
+  border: 1px solid rgba(81, 45, 22, 0.38);
+  border-radius: 8px;
+
+  color: #fffaf0;
+  background: linear-gradient(180deg, #87502b, #3a2317);
+
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.formula-panel__body {
+  max-height: 540px;
+  overflow-y: auto;
+  padding: 14px 18px 18px 20px;
+
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+.formula-panel__body h4 {
+  margin: 14px 0 7px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(109, 61, 28, 0.18);
+
+  color: #6d3d1c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.formula-panel__body p {
+  margin: 6px 0 9px;
+  color: #3a2518;
+}
+
+.formula-list {
+  margin: 8px 0 12px 18px;
+  padding-left: 16px;
+}
+
+.formula-list li {
+  margin-bottom: 5px;
+}
+
+.formula-box {
+  margin: 7px 0;
+  padding: 9px 11px;
+
+  border-left: 5px solid #f59e0b;
+  border-radius: 9px;
+
+  background: linear-gradient(180deg, #fff9df, #fff1bc);
+  color: #3d2416;
+
+  font-size: 15px;
+  font-weight: 900;
+  text-align: center;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 2px 5px rgba(80, 45, 20, 0.12);
+}
+
+.formula-note {
+  margin-top: 12px !important;
+  padding: 10px 12px;
+
+  border-left: 4px solid #22c55e;
+  border-radius: 8px;
+
+  background: linear-gradient(180deg, #e6ffef, #dcfce7);
+  color: #14532d !important;
+
+  font-size: 12.5px;
+  font-weight: 800;
 }

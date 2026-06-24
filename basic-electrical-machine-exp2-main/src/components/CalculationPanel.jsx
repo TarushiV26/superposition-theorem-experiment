@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import SectionCard from './SectionCard.jsx'
+import { CalculationIcon } from './Icons.jsx'
 
 const branches = [
   { key: 'i1', label: 'I₁ (A)' },
@@ -17,7 +18,7 @@ const format = (value) => {
   return Number(number.toFixed(3)).toString()
 }
 
-const CalculationPanel = ({ observations, resistanceValues, currentValue, voltageValue, autoFillTrigger, setInstructionStep }) => {
+const CalculationPanel = ({ observations, resistanceValues, currentValue, voltageValue, autoFillTrigger,calculationResetTrigger,setInstructionStep }) => {
   const [sourceValues, setSourceValues] = useState({
     r1: '',
     r2: '',
@@ -38,9 +39,34 @@ const CalculationPanel = ({ observations, resistanceValues, currentValue, voltag
     userResults: { i1: '', i2: '', i3: '' },
   })
   const [verificationMessage, setVerificationMessage] = useState('')
+  const [isVerified, setIsVerified] = useState(false)
 
   const both = observations.bothSources
   const isReady = Boolean(both)
+  useEffect(() => {
+  setSourceValues({
+    r1: '',
+    r2: '',
+    r3: '',
+    current: '',
+    voltage: '',
+  })
+
+  setOperators({
+    i1: '',
+    i2: '',
+    i3: '',
+  })
+
+  setReadings({
+    currentSourceOnly: { i1: '', i2: '', i3: '' },
+    voltageSourceOnly: { i1: '', i2: '', i3: '' },
+    userResults: { i1: '', i2: '', i3: '' },
+  })
+
+  setVerificationMessage('')
+  setIsVerified(false)
+}, [calculationResetTrigger])
 
   useEffect(() => {
   if (!autoFillTrigger) return
@@ -68,6 +94,14 @@ const CalculationPanel = ({ observations, resistanceValues, currentValue, voltag
       i3: observations.voltageSourceOnly?.i3?.toFixed(3) ?? '',
     },
   }))
+  setOperators({
+  i1: '+',
+  i2: '+',
+  i3: '+',
+})
+
+setIsVerified(false)
+setVerificationMessage('')
 }, [autoFillTrigger])
   const updateSourceValue = (key, value) => {
     setSourceValues((prev) => ({
@@ -109,6 +143,10 @@ return operators[branch] === '+'
   ? cs + vs
   : cs - vs
   }
+  const hasBothSourcesCalculated = branches.every((branch) => {
+  const value = calculateBranch(branch.key)
+  return value !== '' && Number.isFinite(Number(value))
+})
 
   const isCorrect = (branch) => {
     const userValue = Number(readings.userResults[branch])
@@ -136,7 +174,12 @@ return operators[branch] === '+'
 }
 
   return (
-    <SectionCard className="calculation-panel calculation-panel-card" icon="table" id="calculation-panel" title="CALCULATIONS">
+    <SectionCard
+  className="calculation-panel calculation-panel-card"
+  icon="calculation"
+  id="calculation-panel"
+  title="CALCULATIONS"
+>
       <div className="calculation-form">
         <div className="calculation-values-grid">
           <div>
@@ -291,10 +334,11 @@ return operators[branch] === '+'
     <td colSpan={4}>
       <div className="calculation-verify-row">
         <button
-          className="verify-button"
-          type="button"
-          onClick={handleVerify}
-        >
+  className="verify-button"
+  type="button"
+  onClick={handleVerify}
+  disabled={!isReady || !hasBothSourcesCalculated}
+>
           Verify
         </button>
 

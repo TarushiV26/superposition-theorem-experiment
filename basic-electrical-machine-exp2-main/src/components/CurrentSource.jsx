@@ -12,6 +12,7 @@ const CurrentSource = ({
   setCurrent,
   powerOn = false,
   onTogglePower,
+  locked = false,
 }) => {
   const displayedCurrent = powerOn ? `${current.toFixed(1)} A` : ''
 
@@ -79,15 +80,15 @@ const CurrentSource = ({
 
       <label className="current-source__control">
         <input
-          className="current-range"
-          disabled={!powerOn}
-          max="10"
-          min="0"
-          onChange={handleCurrentChange}
-          step="0.1"
-          type="range"
-          value={current}
-        />
+  className="current-range"
+  disabled={!powerOn || locked}
+  max="10"
+  min="0"
+  onChange={handleCurrentChange}
+  step="0.1"
+  type="range"
+  value={current}
+/>
       </label>
     </article>
   )

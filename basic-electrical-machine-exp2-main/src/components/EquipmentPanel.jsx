@@ -3,8 +3,19 @@ import Ammeter from './Ammeter.jsx'
 import CurrentSource from './CurrentSource.jsx'
 import PowerSupply from './PowerSupply.jsx'
 
-const EquipmentPanel = ({ onTogglePower, powerOn, readings, setVoltage, voltage,current,setCurrent,currentSourceOn,
-  onToggleCurrentSource, }) => (
+const EquipmentPanel = ({
+  onTogglePower,
+  powerOn,
+  readings,
+  setVoltage,
+  voltage,
+  current,
+  setCurrent,
+  currentSourceOn,
+  onToggleCurrentSource,
+  lockedCurrent = false,
+  lockedVoltage = false,
+}) => (
   <section className="equipment-panel" id="equipment-panel">
     
     <CurrentSource
@@ -15,6 +26,7 @@ const EquipmentPanel = ({ onTogglePower, powerOn, readings, setVoltage, voltage,
   current={current}
   setCurrent={setCurrent}
   onTogglePower={onToggleCurrentSource}
+   locked={lockedCurrent}
 />
     <div className="ammeter-slot ammeter-slot--a1">
   <Ammeter label="A1" value={readings.A1} />
@@ -36,6 +48,7 @@ const EquipmentPanel = ({ onTogglePower, powerOn, readings, setVoltage, voltage,
       powerOn={powerOn}
       setVoltage={setVoltage}
       voltage={voltage}
+      locked={lockedVoltage}
     />
   </section>
 )

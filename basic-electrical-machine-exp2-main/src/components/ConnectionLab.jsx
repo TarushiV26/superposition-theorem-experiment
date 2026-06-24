@@ -41,6 +41,11 @@ const ConnectionLab = ({
   onTogglePower,
   setVoltage,
   voltage,
+  lockedCurrent = false,
+  lockedVoltage = false,
+  onConnectionChange,
+  onConnectionDetached,
+  onConnectionAdded,
 }) => {
   const containerRef = useRef(null)
   const instanceRef = useRef(null)
@@ -117,7 +122,39 @@ const ConnectionLab = ({
 
       addAllEndpoints(instance)
 
-      instance.setSuspendDrawing(false, true)
+const notifyConnectionChange = () => {
+  const connections =
+    typeof instance.getAllConnections === 'function'
+      ? instance.getAllConnections()
+      : instance.getConnections?.()
+
+  onConnectionChange?.(connections?.length ?? 0)
+}
+
+const handleConnectionAdded = (info) => {
+  const sourceId = info.sourceId || info.source?.id
+  const targetId = info.targetId || info.target?.id
+
+  onConnectionAdded?.(sourceId, targetId)
+
+  window.setTimeout(() => {
+    notifyConnectionChange()
+  }, 0)
+}
+
+const handleConnectionDetached = (connection) => {
+  const sourceId = connection.sourceId || connection.source?.id
+  const targetId = connection.targetId || connection.target?.id
+
+  onConnectionDetached?.(sourceId, targetId)
+  notifyConnectionChange()
+}
+
+instance.bind?.('connection', handleConnectionAdded)
+instance.bind?.('connectionDetached', handleConnectionDetached)
+instance.bind?.('connectionMoved', notifyConnectionChange)
+
+instance.setSuspendDrawing(false, true)
 
       window.setTimeout(() => {
   instance.revalidate?.(containerRef.current)
@@ -136,12 +173,13 @@ const ConnectionLab = ({
     window.addEventListener('resize', handleResize)
 
     return () => {
-      cancelled = true
-      window.removeEventListener('resize', handleResize)
+  cancelled = true
+  window.removeEventListener('resize', handleResize)
 
-      instanceRef.current?.reset()
-      instanceRef.current = null
-    }
+  instanceRef.current?.deleteEveryConnection?.()
+  instanceRef.current?.reset()
+  instanceRef.current = null
+}
   }, [resetRequest])
 
   useEffect(() => {
@@ -253,6 +291,8 @@ console.log('CHECK RESULT:', result)
   setCurrent={setCurrent}
   currentSourceOn={currentSourceOn}
   onToggleCurrentSource={onToggleCurrentSource}
+  lockedCurrent={lockedCurrent}
+lockedVoltage={lockedVoltage}
 />
 
       <CircuitDiagram r1={r1} r2={r2} r3={r3} />

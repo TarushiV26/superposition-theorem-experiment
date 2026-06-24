@@ -9,6 +9,7 @@ const PowerSupply = ({
   powerOn,
   setVoltage,
   voltage,
+  locked = false,
 }) => {
   const displayedVoltage = powerOn ? `${voltage.toFixed(1)} V` : ''
   const handleVoltageChange = (event) => {
@@ -67,7 +68,7 @@ const PowerSupply = ({
         <input
           aria-label="Voltage"
           className="voltage-range"
-          disabled={!powerOn}
+          disabled={!powerOn || locked}
           id="voltage-slider"
           max="10"
           min="0"

@@ -87,7 +87,54 @@ export const TableIcon = () => (
     <path d="M5 12h22M5 19h22M12 5v22M20 5v22" stroke="currentColor" strokeWidth="2.2" />
   </svg>
 )
+export const CalculationIcon = () => (
+  <svg aria-hidden="true" viewBox="0 0 32 32">
+    {/* center cross */}
+    <path
+      d="M16 4v24M6 16h20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+    />
 
+    {/* minus */}
+    <path
+      d="M5 9h4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+    />
+
+    {/* plus */}
+    <path
+      d="M22 8h6M25 5v6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+    />
+
+    {/* multiply */}
+    <path
+      d="M6 23l4 4M10 23l-4 4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+    />
+
+    {/* equals */}
+    <path
+      d="M22 23h6M22 27h6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+    />
+  </svg>
+)
 export const ActionButtonsIcon = () => (
   <svg aria-hidden="true" viewBox="0 0 32 32">
     <circle cx="14.7" cy="8.7" fill="currentColor" r="6.7" />

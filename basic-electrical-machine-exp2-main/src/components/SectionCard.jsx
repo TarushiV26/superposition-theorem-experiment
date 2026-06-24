@@ -1,9 +1,10 @@
-import { ActionButtonsIcon, SlidersIcon, TableIcon } from './Icons.jsx'
+import { ActionButtonsIcon, SlidersIcon, TableIcon, CalculationIcon } from './Icons.jsx'
 
 const icons = {
   buttons: ActionButtonsIcon,
   sliders: SlidersIcon,
   table: TableIcon,
+  calculation: CalculationIcon,
 }
 
 const SectionCard = ({ children, className = '', icon, title, ...sectionProps }) => {
