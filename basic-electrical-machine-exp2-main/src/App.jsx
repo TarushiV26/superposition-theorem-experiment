@@ -32,6 +32,43 @@ const MIN_GRAPH_READINGS = 1
 const MAX_OBSERVATIONS = 10
 const VOLTAGE_SAFETY_LIMIT = 8.5
 const VOLTAGE_SAFETY_RESET = 7.5
+const CASE_CONNECTIONS = {
+  case1: [
+    ['1-endpoint', '9-endpoint'],
+    ['2-endpoint', '10-endpoint'],
+    ['17-endpoint', '18-endpoint'],
+    ['3-endpoint', '11-endpoint'],
+    ['4-endpoint', '12-endpoint'],
+    ['5-endpoint', '13-endpoint'],
+    ['6-endpoint', '14-endpoint'],
+    ['7-endpoint', '15-endpoint'],
+    ['8-endpoint', '16-endpoint'],
+  ],
+
+  case2: [
+    ['17-endpoint', '19-endpoint'],
+    ['18-endpoint', '20-endpoint'],
+    ['3-endpoint', '11-endpoint'],
+    ['4-endpoint', '12-endpoint'],
+    ['5-endpoint', '13-endpoint'],
+    ['6-endpoint', '14-endpoint'],
+    ['7-endpoint', '15-endpoint'],
+    ['8-endpoint', '16-endpoint'],
+  ],
+
+  case3: [
+    ['1-endpoint', '9-endpoint'],
+    ['2-endpoint', '10-endpoint'],
+    ['17-endpoint', '19-endpoint'],
+    ['18-endpoint', '20-endpoint'],
+    ['3-endpoint', '11-endpoint'],
+    ['4-endpoint', '12-endpoint'],
+    ['5-endpoint', '13-endpoint'],
+    ['6-endpoint', '14-endpoint'],
+    ['7-endpoint', '15-endpoint'],
+    ['8-endpoint', '16-endpoint'],
+  ],
+}
 
 const getObservationSignature = ({ i1, i2, i3, voltage }) => (
   [
@@ -52,6 +89,59 @@ const getScale = () => {
 
   return Math.max(Math.min(widthScale, heightScale, PANEL_MAX_SCALE), 0.1)
 }
+const formatNode = (nodeId) => (
+  nodeId ? nodeId.toString().replace('-endpoint', '') : ''
+)
+
+const isSameConnection = (c1, c2) => (
+  (c1[0] === c2[0] && c1[1] === c2[1]) ||
+  (c1[0] === c2[1] && c1[1] === c2[0])
+)
+
+const getConnectionCaseKey = (observations) => {
+  if (!observations.currentSourceOnly) return 'case1'
+  if (!observations.voltageSourceOnly) return 'case2'
+  return 'case3'
+}
+
+const toPairKey = (connection) => (
+  [connection[0], connection[1]].sort().join('|')
+)
+
+const buildConnectionAlertDescription = (rawConnections, requiredConnections) => {
+  const requiredKeys = new Set(requiredConnections.map(toPairKey))
+  const rawKeys = new Set(rawConnections.map(toPairKey))
+
+  const wrongConnections = rawConnections.filter((connection) => (
+    !requiredKeys.has(toPairKey(connection))
+  ))
+
+  const missingConnections = requiredConnections.filter((connection) => (
+    !rawKeys.has(toPairKey(connection))
+  ))
+
+  const wrongText = wrongConnections.length === 0
+  ? ''
+  : `Wrong Connections:\n${wrongConnections
+      .map(
+        (connection, index) =>
+          `${index + 1}. ${formatNode(connection[0])} → ${formatNode(connection[1])}`
+      )
+      .join('\n')}`
+
+  const visibleMissing = missingConnections
+
+  const missingText = missingConnections.length === 0
+  ? ''
+  : `Missing Connections:\n${visibleMissing
+      .map(
+        (connection, index) =>
+          `${index + 1}. ${formatNode(connection[0])} → ${formatNode(connection[1])}`
+      )
+      .join('\n')}`
+
+  return [wrongText, missingText].filter(Boolean).join('\n\n')
+}
 
 const App = () => {
   const { confirmAlert, showStepAlert } = useLabAlerts()
@@ -66,6 +156,7 @@ const App = () => {
   const [autoFillTrigger, setAutoFillTrigger] = useState(0)
 const [currentSourceOn, setCurrentSourceOn] = useState(false)
 const [lockedCurrent, setLockedCurrent] = useState(null)
+const [sourcesLocked, setSourcesLocked] = useState(false)
 const [calculationResetTrigger, setCalculationResetTrigger] = useState(0)
 const [showFormulaPanel, setShowFormulaPanel] = useState(false)
 const [aiGuideEnabled, setAiGuideEnabled] = useState(false)
@@ -111,6 +202,11 @@ useEffect(() => {
   const [resetRequest, setResetRequest] = useState(0)
   const [pendingReportData, setPendingReportData] = useState(null)
   const [connectionsVerified, setConnectionsVerified] = useState(false)
+  const [lockedConnections, setLockedConnections] = useState({
+  ammeters: false,
+  voltageSource: false,
+  all: false,
+})
   const [instructionStep, setInstructionStep] = useState('resistance')
   const instructionStepRef = useRef('resistance')
 
@@ -321,6 +417,11 @@ const canPlotGraph = readingCount >= 3
       r3,
     },
   }))
+  setLockedConnections({
+  ammeters: true,
+  voltageSource: false,
+  all: false,
+})
   setLockedCurrent(current)
   setInstructionStep('case1-remove-connections')
   instructionStepRef.current = 'case1-remove-connections'
@@ -369,6 +470,11 @@ else if (powerOn && !currentSourceOn) {
       r3,
     },
   }))
+  setLockedConnections({
+  ammeters: true,
+  voltageSource: true,
+  all: false,
+})
     setLockedVoltage(voltage)
   setInstructionStep('case2-turn-off-voltage')
   setStatus('Voltage source only reading saved.')
@@ -410,6 +516,12 @@ else if (powerOn && currentSourceOn) {
       r3,
     },
   }))
+  setLockedConnections({
+  ammeters: true,
+  voltageSource: true,
+  all: true,
+})
+setSourcesLocked(true)
    setInstructionStep('calculate-button')
   setStatus('Both sources reading saved.')
 
@@ -514,6 +626,7 @@ lastGuideMessageRef.current = ''
     })
     setLockedCurrent(null)
 setLockedVoltage(null)
+setSourcesLocked(false)
    setCalculationResetTrigger((prev) => prev + 1)
 setAutoFillTrigger(0)
     setGraphGenerated(false)
@@ -535,6 +648,11 @@ window.clearTimeout(resistanceGuideTimerRef.current)
 touchedResistorsRef.current.clear()
 case1IntroSpokenRef.current = false
 window.clearTimeout(resistanceGuideTimerRef.current)
+setLockedConnections({
+  ammeters: false,
+  voltageSource: false,
+  all: false,
+})
     //showStepAlert(EXPERIMENT_ALERTS.resetSuccess)
     /*setPendingObservation({
   i1Cs: null,
@@ -800,12 +918,31 @@ if (!observations.currentSourceOnly) {
       return
     }
 
-    setStatus(
-      `Invalid connections. Correct matched points: ${result.matchedCount}; total wires: ${result.totalConnections}.`,
-    )
-    showStepAlert(EXPERIMENT_ALERTS.connectionErrorFound, {
-      description: `Matched ${result.matchedCount} of 8 required wire pairs from ${result.totalConnections} total wires.`,
-    })
+    const caseKey = getConnectionCaseKey(observationsRef.current)
+const requiredConnections = CASE_CONNECTIONS[caseKey]
+const rawConnections = result.rawConnections || []
+console.log('CASE KEY:', caseKey)
+console.log('REQUIRED CONNECTIONS:', requiredConnections)
+console.log('RAW CONNECTIONS:', rawConnections)
+
+const finalDescription = buildConnectionAlertDescription(
+  rawConnections,
+  requiredConnections
+)
+console.log('FINAL DESCRIPTION:', finalDescription)
+
+setStatus('Invalid connections. Please check the wrong and missing connections.')
+
+showStepAlert({
+  title: 'Alert',
+  description: finalDescription || 'Some connections are wrong. Please check the circuit wiring.',
+  type: 'warning',
+  icon: '⚠️',
+  placement: 'center',
+  requiresConfirmation: true,
+  confirmLabel: 'OK',
+  dedupeKey: `connection-check-error-${Date.now()}`,
+})
   }, [observations, showStepAlert, showGuideAlert, playGuideAudio])
 
   const handleCheck = () => {
@@ -906,7 +1043,7 @@ if (isCase3InProgress) {
 setInstructionStep('case1-set-current')
 
 setStatus('Current source switched on. Adjust current and add the reading.')
-showStepAlert(EXPERIMENT_ALERTS.currentSourceOn)
+//showStepAlert(EXPERIMENT_ALERTS.currentSourceOn)
 }
    const handleTogglePower = () => {
   if (!powerOn && !connectionsVerified) {
@@ -989,7 +1126,7 @@ if (isCase3InProgress) {
 setInstructionStep('case2-set-voltage')
 
 setStatus('Voltage source switched on. Adjust voltage and add the reading.')
-showStepAlert(EXPERIMENT_ALERTS.powerOn)
+//showStepAlert(EXPERIMENT_ALERTS.powerOn)
 }
 
   const handleAutoConnect = () => {
@@ -1057,13 +1194,13 @@ showGuideAlert(
       return
     }
 
-    if (nextVoltage >= VOLTAGE_SAFETY_LIMIT && !voltageLimitWarningShownRef.current) {
+    /*if (nextVoltage >= VOLTAGE_SAFETY_LIMIT && !voltageLimitWarningShownRef.current) {
       voltageLimitWarningShownRef.current = true
       showStepAlert(EXPERIMENT_ALERTS.voltageSafetyLimit, {
         description: `${nextVoltage.toFixed(1)} V is close to the 10 V supply limit.`,
       })
       return
-    }
+    }*/
 
     if (nextVoltage < VOLTAGE_SAFETY_RESET) {
       voltageLimitWarningShownRef.current = false
@@ -1142,6 +1279,8 @@ setR3={(value) => handleResistanceChange('r3', setR3, value)}
                   observations={observations}
                   powerOn={powerOn}
                   current={current}
+                  sourcesLocked={sourcesLocked}
+                  lockedConnections={lockedConnections}
                   setCurrent={(value) => {
   setCurrent(value)
 

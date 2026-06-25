@@ -15,6 +15,7 @@ const EquipmentPanel = ({
   onToggleCurrentSource,
   lockedCurrent = false,
   lockedVoltage = false,
+  sourcesLocked = false,
 }) => (
   <section className="equipment-panel" id="equipment-panel">
     
@@ -27,6 +28,7 @@ const EquipmentPanel = ({
   setCurrent={setCurrent}
   onTogglePower={onToggleCurrentSource}
    locked={lockedCurrent}
+    sourcesLocked={sourcesLocked}
 />
     <div className="ammeter-slot ammeter-slot--a1">
   <Ammeter label="A1" value={readings.A1} />
@@ -49,6 +51,7 @@ const EquipmentPanel = ({
       setVoltage={setVoltage}
       voltage={voltage}
       locked={lockedVoltage}
+      sourcesLocked={sourcesLocked}
     />
   </section>
 )

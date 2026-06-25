@@ -13,6 +13,7 @@ const CurrentSource = ({
   powerOn = false,
   onTogglePower,
   locked = false,
+  sourcesLocked = false,
 }) => {
   const displayedCurrent = powerOn ? `${current.toFixed(1)} A` : ''
 
@@ -73,10 +74,11 @@ const CurrentSource = ({
       </span>
 
       <button
-        className="current-source__button"
-        onClick={onTogglePower}
-        type="button"
-      />
+  className="current-source__button"
+  onClick={sourcesLocked ? undefined : onTogglePower}
+  disabled={sourcesLocked}
+  type="button"
+/>
 
       <label className="current-source__control">
         <input

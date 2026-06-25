@@ -10,6 +10,7 @@ const PowerSupply = ({
   setVoltage,
   voltage,
   locked = false,
+  sourcesLocked = false,
 }) => {
   const displayedVoltage = powerOn ? `${voltage.toFixed(1)} V` : ''
   const handleVoltageChange = (event) => {
@@ -59,7 +60,8 @@ const PowerSupply = ({
         aria-label={powerOn ? 'Switch power supply off' : 'Switch power supply on'}
         aria-pressed={powerOn}
         className="power-supply__button"
-        onClick={onTogglePower}
+        onClick={sourcesLocked ? undefined : onTogglePower}
+        disabled={sourcesLocked}
         type="button"
       />
 

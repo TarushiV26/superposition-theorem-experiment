@@ -120,11 +120,15 @@ const LabAlertCard = ({ alert, onDismiss }) => {
 
         <div className="lab-alert-card__content">
           <div className="lab-alert-card__meta">
-            {stepNumber ? <span>STEP {stepNumber}</span> : null}
-            <span>{type.toUpperCase()}</span>
-          </div>
+  <span>{type.toUpperCase()}</span>
+</div>
           <h2 id={titleId}>{title}</h2>
-          {description ? <p id={descriptionId}>{description}</p> : null}
+          {description ? <p
+  id={descriptionId}
+  className="lab-alert-card__description"
+>
+  {description}
+</p> : null}
         </div>
 
         <div className="lab-alert-card__tools">

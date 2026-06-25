@@ -46,6 +46,12 @@ const ConnectionLab = ({
   onConnectionChange,
   onConnectionDetached,
   onConnectionAdded,
+  sourcesLocked = false,
+  lockedConnections = {
+  ammeters: false,
+  voltageSource: false,
+  all: false,
+},
 }) => {
   const containerRef = useRef(null)
   const instanceRef = useRef(null)
@@ -248,6 +254,29 @@ console.log('CHECK RESULT:', result)
     onCheckConnectionsRef.current?.(result)
   }, [checkRequest])
   
+  const isLockedTerminal = (terminalId) => {
+  const terminal = Number(String(terminalId).replace('-endpoint', ''))
+
+  if (lockedConnections.all) {
+    return true
+  }
+
+  if (
+    lockedConnections.ammeters &&
+    [3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16].includes(terminal)
+  ) {
+    return true
+  }
+
+  if (
+    lockedConnections.voltageSource &&
+    [17, 18, 19, 20].includes(terminal)
+  ) {
+    return true
+  }
+
+  return false
+}
 
   const handleLabelClick = (event) => {
     const label = event.target.closest('.terminal-number-label')
@@ -264,6 +293,9 @@ console.log('CHECK RESULT:', result)
     }*/
 
     const terminalId = label.dataset.terminalId
+    if (isLockedTerminal(terminalId)) {
+  return
+}
 
     if (!terminalId || !instanceRef.current) {
       return
@@ -293,6 +325,7 @@ console.log('CHECK RESULT:', result)
   onToggleCurrentSource={onToggleCurrentSource}
   lockedCurrent={lockedCurrent}
 lockedVoltage={lockedVoltage}
+sourcesLocked={sourcesLocked}
 />
 
       <CircuitDiagram r1={r1} r2={r2} r3={r3} />

@@ -478,6 +478,15 @@ export const autoConnectBothSources = (instance) => {
 }
 
 export const validateOldExperimentConnections = (instance) => {
+  const actualConnections =
+  typeof instance.getAllConnections === 'function'
+    ? instance.getAllConnections()
+    : instance.getConnections?.()
+
+const rawConnections = (actualConnections || []).map((connection) => [
+  connection.sourceId || connection.source?.id,
+  connection.targetId || connection.target?.id,
+])
   const ammeterConnections = [
     ['3-endpoint', '11-endpoint'],
     ['4-endpoint', '12-endpoint'],
@@ -519,7 +528,7 @@ export const validateOldExperimentConnections = (instance) => {
     bothSourcesConnections,
   ]
 
-  const totalConnections = getAllConnections(instance).length
+  const totalConnections = actualConnections?.length ?? 0
 
   const caseResults = cases.map((connections) => {
     const matchedCount = connections.filter(([first, second]) => (
@@ -532,6 +541,7 @@ export const validateOldExperimentConnections = (instance) => {
       isCorrect:
         matchedCount === connections.length
         && totalConnections === connections.length,
+        rawConnections,
     }
   })
 
@@ -556,6 +566,7 @@ return {
     : bestMatch.matchedCount,
   totalConnections,
   caseType: correctCaseIndex !== -1 ? caseNames[correctCaseIndex] : null,
+  rawConnections,
 }
 }
 

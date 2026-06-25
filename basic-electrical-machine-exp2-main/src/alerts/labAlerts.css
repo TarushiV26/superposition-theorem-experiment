@@ -145,8 +145,8 @@
 
 .lab-alert-card__icon {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   place-items: center;
   border: 1px solid rgba(255, 236, 193, 0.32);
   border-radius: 12px;
@@ -157,7 +157,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.32),
     0 0 18px var(--alert-accent-soft),
     0 5px 10px rgba(19, 9, 4, 0.38);
-  font-size: 22px;
+  font-size: 28px;
   line-height: 1;
 }
 
@@ -191,7 +191,7 @@
   margin: 0;
   color: #fff8ea;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.15;
   letter-spacing: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.42);
@@ -200,9 +200,9 @@
 .lab-alert-card p {
   margin: 6px 0 0;
   color: rgba(255, 246, 226, 0.84);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.5;
 }
 
 .lab-alert-card__tools {
@@ -483,4 +483,11 @@
     animation: none !important;
     transition: none !important;
   }
+}
+.lab-alert-card__description {
+  white-space: pre-line;
+  line-height: 1.6;
+}
+body:has(.lab-alert-region--center) {
+  overflow: hidden;
 }

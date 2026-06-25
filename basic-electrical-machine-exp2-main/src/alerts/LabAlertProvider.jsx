@@ -189,6 +189,19 @@ const LabAlertProvider = ({ children }) => {
   }, [releaseDedupeKey])
 
   const { centerAlert, topRightAlerts } = alertState
+  useEffect(() => {
+  if (!centerAlert) {
+    document.body.style.overflow = ''
+    return
+  }
+
+  const previousOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+
+  return () => {
+    document.body.style.overflow = previousOverflow
+  }
+}, [centerAlert])
 
   const spotlightAlert = centerAlert ?? topRightAlerts.at(-1)
   const hasCriticalAlert = Boolean(centerAlert?.critical)
