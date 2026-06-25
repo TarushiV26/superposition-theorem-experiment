@@ -18,7 +18,7 @@ const format = (value) => {
   return Number(number.toFixed(3)).toString()
 }
 
-const CalculationPanel = ({ observations, resistanceValues, currentValue, voltageValue, autoFillTrigger,calculationResetTrigger,setInstructionStep }) => {
+const CalculationPanel = ({ observations, resistanceValues, currentValue, voltageValue, autoFillTrigger,onVerificationComplete,calculationResetTrigger,setInstructionStep }) => {
   const [sourceValues, setSourceValues] = useState({
     r1: '',
     r2: '',
@@ -104,21 +104,40 @@ setIsVerified(false)
 setVerificationMessage('')
 }, [autoFillTrigger])
   const updateSourceValue = (key, value) => {
-    setSourceValues((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
-  }
+  setSourceValues((prev) => ({
+    ...prev,
+    [key]: sanitizeNumberInput(value),
+  }))
+}
 
-  const updateReading = (section, branch, value) => {
-    setReadings((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [branch]: value,
-      },
-    }))
-  }
+  const sanitizeNumberInput = (value) => {
+  let next = value.replace(/[^\d.-]/g, '')
+
+  next = next.replace(/(?!^)-/g, '')
+
+  const [integerPart, ...decimalParts] = next.split('.')
+  const decimalPart = decimalParts.join('')
+
+  const limitedInteger = integerPart.slice(0, 4)
+  const limitedDecimal = decimalPart.slice(0, 3)
+
+  return decimalParts.length > 0
+    ? `${limitedInteger}.${limitedDecimal}`
+    : limitedInteger
+}
+
+const updateReading = (section, branch, value) => {
+  setReadings((prev) => ({
+    ...prev,
+    [section]: {
+      ...prev[section],
+      [branch]: sanitizeNumberInput(value),
+    },
+  }))
+
+  setIsVerified(false)
+  setVerificationMessage('')
+}
 
   const toggleOperator = (branch) => {
   setOperators((prev) => ({
@@ -149,28 +168,32 @@ return operators[branch] === '+'
 })
 
   const isCorrect = (branch) => {
-    const userValue = Number(readings.userResults[branch])
+  const userValue = Number(readings.userResults[branch])
+  const expected = Number(calculateBranch(branch))
 
-    if (!isReady || !Number.isFinite(userValue)) {
-      return false
-    }
-
-    return Math.abs(userValue - both[branch]) <= 0.01
-  }
-  const handleVerify = () => {
-  if (!isReady) {
-    setVerificationMessage('Complete all three simulation observations first.')
-    return
+  if (!Number.isFinite(userValue) || !Number.isFinite(expected)) {
+    return false
   }
 
-  const allCorrect = branches.every((branch) => isCorrect(branch.key))
-
-  if (allCorrect) {
-  setVerificationMessage('✓ Superposition Theorem verified successfully.')
-  setInstructionStep?.('verified')
-} else {
-  setVerificationMessage('✗ Check your signs and calculated current values.')
+  return Math.abs(userValue - expected) <= 0.11
 }
+  const handleVerify = () => {
+  setVerificationMessage('')
+  setIsVerified(false)
+
+  window.setTimeout(() => {
+    const allCorrect = branches.every((branch) => isCorrect(branch.key))
+
+    if (allCorrect) {
+      setVerificationMessage('✓ Superposition Theorem verified successfully.')
+      setInstructionStep?.('verified')
+      setIsVerified(true)
+      onVerificationComplete?.()
+    } else {
+      setVerificationMessage('✗ Check your signs and calculated current values.')
+      setIsVerified(false)
+    }
+  }, 0)
 }
 
   return (

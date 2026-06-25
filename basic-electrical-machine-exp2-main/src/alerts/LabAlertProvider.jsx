@@ -190,19 +190,22 @@ const LabAlertProvider = ({ children }) => {
 
   const { centerAlert, topRightAlerts } = alertState
   useEffect(() => {
-  if (!centerAlert) {
-    document.body.style.overflow = ''
-    return
-  }
+  const previousBodyOverflow = document.body.style.overflow
+  const previousHtmlOverflow = document.documentElement.style.overflow
 
-  const previousOverflow = document.body.style.overflow
-  document.body.style.overflow = 'hidden'
+  if (centerAlert) {
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = previousBodyOverflow
+    document.documentElement.style.overflow = previousHtmlOverflow
+  }
 
   return () => {
-    document.body.style.overflow = previousOverflow
+    document.body.style.overflow = previousBodyOverflow
+    document.documentElement.style.overflow = previousHtmlOverflow
   }
 }, [centerAlert])
-
   const spotlightAlert = centerAlert ?? topRightAlerts.at(-1)
   const hasCriticalAlert = Boolean(centerAlert?.critical)
 

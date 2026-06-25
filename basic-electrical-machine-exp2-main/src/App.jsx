@@ -163,6 +163,7 @@ const [aiGuideEnabled, setAiGuideEnabled] = useState(false)
 const lastGuideMessageRef = useRef('')
 const resistanceGuideTimerRef = useRef(null)
 const case1IntroSpokenRef = useRef(false)
+const [calculationsVerified, setCalculationsVerified] = useState(false)
 const touchedResistorsRef = useRef(new Set())
 const lastInstructionAudioRef = useRef('')
 const aiGuideJustEnabledRef = useRef(false)
@@ -296,22 +297,32 @@ const playGuideAudio = useCallback((key, message) => {
   speakGuideMessage(message)
 }, [aiGuideEnabled])
 
-const showGuideAlert = useCallback((key, message, options = {}) => {
+const showGuideAlert = useCallback((key, message) => {
   if (!aiGuideEnabled) return
 
   if (lastGuideMessageRef.current === key) return
   lastGuideMessageRef.current = key
 
+  window.speechSynthesis?.cancel()
   speakGuideMessage(message)
+}, [aiGuideEnabled])
+const showAlertWithOptionalAudio = useCallback(
+  (alert, audioMessage = alert.description) => {
 
-  showStepAlert({
-  title: options.title || 'AI Guide',
-  description: message,
-  type: options.type || 'info',
-  target: null,
-  icon: options.icon || '🤖',
-})
-}, [aiGuideEnabled, showStepAlert])
+    showStepAlert({
+      ...alert,
+      target: null,
+    })
+
+    if (!aiGuideEnabled) return
+
+    window.speechSynthesis.cancel()
+
+    speakGuideMessage(audioMessage)
+  },
+  [aiGuideEnabled, showStepAlert]
+)
+
 useEffect(() => {
   if (!aiGuideEnabled) return
   if (aiGuideJustEnabledRef.current) return
@@ -354,7 +365,7 @@ const canPlotGraph = readingCount >= 3
   }
 )
   setStatus('Check the circuit connections before adding readings.')
-  showStepAlert({
+  showAlertWithOptionalAudio({
     title: 'Check Connections First',
     description: 'Please press CHECK and verify the current case connections before adding the reading.',
     type: 'warning',
@@ -423,20 +434,19 @@ const canPlotGraph = readingCount >= 3
   all: false,
 })
   setLockedCurrent(current)
-  setInstructionStep('case1-remove-connections')
-  instructionStepRef.current = 'case1-remove-connections'
+  instructionStepRef.current = 'case1-turn-off-current'
+setInstructionStep('case1-turn-off-current')
   setStatus('Current source only reading saved.')
 
-  showStepAlert({
+  showAlertWithOptionalAudio(
+  {
     title: 'Current Source Only Reading Saved',
-    description: 'Switch OFF the current source and proceed to Voltage Source Only case.',
+    description:
+      'Switch OFF the current source and proceed to Voltage Source Only case.',
     type: 'success',
-  })
-  playGuideAudio(
-  'case1-reading-added',
+  },
   AI_GUIDE_MESSAGES.case1ReadingAdded
 )
-
 /*setTimeout(() => {
   playGuideAudio(
     'case2-connections-guide',
@@ -449,8 +459,10 @@ const canPlotGraph = readingCount >= 3
 }
 
 else if (powerOn && !currentSourceOn) {
-  if (!observations.currentSourceOnly) {
-    showStepAlert({
+  const latest = observationsRef.current
+
+if (!latest.currentSourceOnly) {
+    showAlertWithOptionalAudio({
       title: 'Complete Current Source Case First',
       description: 'First perform Current Source Only case, then Voltage Source Only case.',
       type: 'warning',
@@ -479,13 +491,13 @@ else if (powerOn && !currentSourceOn) {
   setInstructionStep('case2-turn-off-voltage')
   setStatus('Voltage source only reading saved.')
 
-  showStepAlert({
+  showAlertWithOptionalAudio(
+  {
     title: 'Voltage Source Only Reading Saved',
-    description: 'Switch OFF the voltage source and proceed to Both Sources case.',
+    description:
+      'Switch OFF the Voltage source and proceed to Both Source ON case.',
     type: 'success',
-  })
-  playGuideAudio(
-  'case2-reading-added',
+  },
   AI_GUIDE_MESSAGES.case2ReadingAdded
 )
 
@@ -494,8 +506,11 @@ else if (powerOn && !currentSourceOn) {
 }
 
 else if (powerOn && currentSourceOn) {
-  if (!observations.currentSourceOnly || !observations.voltageSourceOnly) {
-    showStepAlert({
+  console.log('CASE 3 ADD READING BLOCK ENTERED')
+  const latest = observationsRef.current
+
+if (!latest.currentSourceOnly || !latest.voltageSourceOnly) {
+    showAlertWithOptionalAudio({
       title: 'Complete Previous Cases First',
       description: 'Complete Current Source Only and Voltage Source Only cases before Both Sources case.',
       type: 'warning',
@@ -525,19 +540,20 @@ setSourcesLocked(true)
    setInstructionStep('calculate-button')
   setStatus('Both sources reading saved.')
 
-  showStepAlert({
+  /*showAlertWithOptionalAudio({
     title: 'Experiment Completed',
     description: 'All three cases have been recorded successfully.',
     type: 'success',
-  })
-  showGuideAlert(
-  'case3-reading-added',
-  AI_GUIDE_MESSAGES.case3ReadingAdded,
+  })*/
+  showAlertWithOptionalAudio(
   {
-    title: 'Final Reading Added',
-    target: '#calculate-button',
+    dedupeKey: `case3-reading-added-${Date.now()}`,
+    title: 'Both Sources Reading Saved',
+    description: 'Final readings have been added to the observation table. Now click the Calculate button.',
     type: 'success',
-  }
+    icon: '✅',
+  },
+  AI_GUIDE_MESSAGES.case3ReadingAdded
 )
 
   setConnectionsVerified(false)
@@ -631,6 +647,7 @@ setSourcesLocked(false)
 setAutoFillTrigger(0)
     setGraphGenerated(false)
     setReportGenerated(false)
+    setCalculationsVerified(false)
     addedCase2VoltageRef.current.clear()
     setAutoConnectRequest(0)
     setCheckRequest(0)
@@ -661,7 +678,7 @@ setLockedConnections({
   voltageVs: null,
   currentCs: null,
 })*/
-showStepAlert({
+showAlertWithOptionalAudio({
   title: 'Simulation Reset',
   description: 'The simulation has been reset. You can start again.',
   type: 'success',
@@ -701,7 +718,7 @@ showStepAlert({
 
   const handlePrint = () => {
   if (readingCount < 3) {
-    showStepAlert({
+    showAlertWithOptionalAudio({
       title: 'No Observation Found',
       description: 'Complete all three cases before generating the report.',
       type: 'warning',
@@ -763,7 +780,7 @@ const handleAiGuide = () => {
   })
 
   if (readingCount < 3) {
-    showStepAlert({
+    showAlertWithOptionalAudio({
       title: 'Incomplete Observations',
       description: 'Complete all three cases before generating the report.',
       type: 'warning',
@@ -842,61 +859,60 @@ const handleAiGuide = () => {
       return
     }*/
    if (result.isCorrect) {
+  const latestObservations = observationsRef.current
+
   setConnectionsVerified(true)
-  if (!observations.currentSourceOnly) {
-  setInstructionStep('case1-turn-on-current')
-} else if (!observations.voltageSourceOnly) {
-  setInstructionStep('case2-turn-on-voltage')
-} else {
-  setInstructionStep('case3-turn-on-both')
-}
-if (!observations.currentSourceOnly) {
-  showGuideAlert(
-    'case1-verified',
-    AI_GUIDE_MESSAGES.case1Verified,
-    {
-      title: 'Connections Verified',
-      target: '#current-source',
-      type: 'success',
-    }
-  )
-} else if (!observations.voltageSourceOnly) {
-  showGuideAlert(
-    'case2-verified',
-    AI_GUIDE_MESSAGES.case2Verified,
-    {
-      title: 'Connections Verified',
-      target: '#power-supply-2',
-      type: 'success',
-    }
-  )
-} else {
-  showGuideAlert(
-    'case3-verified',
-    AI_GUIDE_MESSAGES.case3Verified,
-    {
-      title: 'Connections Verified',
-      target: '#equipment-panel',
-      type: 'success',
-    }
-  )
-}
+
+  if (!latestObservations.currentSourceOnly) {
+    setInstructionStep('case1-turn-on-current')
+  } else if (!latestObservations.voltageSourceOnly) {
+    setInstructionStep('case2-turn-on-voltage')
+  } else {
+    setInstructionStep('case3-turn-on-both')
+  }
+
   setStatus(
     'Connections verified. Now switch ON the required source for this case.',
   )
 
-  showStepAlert({
-    dedupeKey: `connections-verified-${Date.now()}`,
-    title: 'Connections Verified Successfully',
-    description: 'Now switch ON the required source for this case and click ADD to save the reading.',
-    icon: '✅',
-    target: '#check-button',
-    type: 'success',
-  })
+  if (!latestObservations.currentSourceOnly) {
+    showAlertWithOptionalAudio(
+      {
+        dedupeKey: `connections-verified-${Date.now()}`,
+        title: 'Connections Verified Successfully',
+        description: 'Now switch ON the current source and set the required current.',
+        icon: '✅',
+        type: 'success',
+      },
+      AI_GUIDE_MESSAGES.case1Verified
+    )
+  } else if (!latestObservations.voltageSourceOnly) {
+    showAlertWithOptionalAudio(
+      {
+        dedupeKey: `connections-verified-${Date.now()}`,
+        title: 'Connections Verified Successfully',
+        description: 'Now switch ON the voltage source and set the required voltage.',
+        icon: '✅',
+        type: 'success',
+      },
+      AI_GUIDE_MESSAGES.case2Verified
+    )
+  } else {
+    showAlertWithOptionalAudio(
+      {
+        dedupeKey: `connections-verified-${Date.now()}`,
+        title: 'Connections Verified Successfully',
+        description: 'Now turn ON both the current source and voltage source.',
+        icon: '✅',
+        type: 'success',
+      },
+      AI_GUIDE_MESSAGES.case3Verified
+    )
+  }
 
   return
 }
-
+//HELLOOOOO
     setConnectionsVerified(false)
     if (result.totalConnections > 1) {
   playGuideAudio(
@@ -933,17 +949,20 @@ console.log('FINAL DESCRIPTION:', finalDescription)
 
 setStatus('Invalid connections. Please check the wrong and missing connections.')
 
-showStepAlert({
-  title: 'Alert',
-  description: finalDescription || 'Some connections are wrong. Please check the circuit wiring.',
-  type: 'warning',
-  icon: '⚠️',
-  placement: 'center',
-  requiresConfirmation: true,
-  confirmLabel: 'OK',
-  dedupeKey: `connection-check-error-${Date.now()}`,
-})
-  }, [observations, showStepAlert, showGuideAlert, playGuideAudio])
+showAlertWithOptionalAudio(
+  {
+    title: 'Alert',
+    description: finalDescription || 'Some connections are wrong. Please check the circuit wiring.',
+    type: 'warning',
+    icon: '⚠️',
+    placement: 'center',
+    requiresConfirmation: true,
+    confirmLabel: 'OK',
+    dedupeKey: `connection-check-error-${Date.now()}`,
+  },
+  'Some connections are wrong.'
+)
+  }, [observations, showStepAlert, showGuideAlert, playGuideAudio, showAlertWithOptionalAudio])
 
   const handleCheck = () => {
     if (!resistanceSet) {
@@ -956,7 +975,7 @@ showStepAlert({
     type: 'warning',
   }
 )
-  showStepAlert({
+  showAlertWithOptionalAudio({
     title: 'Set Resistance First',
     description: 'Please set R1, R2 and R3 before checking circuit connections.',
     icon: '⚠️',
@@ -966,7 +985,7 @@ showStepAlert({
   return
 }
   if (powerOn || currentSourceOn) {
-    showStepAlert({
+    showAlertWithOptionalAudio({
       title: 'Turn OFF Sources First',
       description: 'Switch OFF voltage and current sources before checking the next case connections.',
       type: 'warning',
@@ -975,7 +994,7 @@ showStepAlert({
   }
 
   setConnectionsVerified(false)
-  if (aiGuideEnabled) {
+  /*if (aiGuideEnabled) {
   showGuideAlert(
     'make-required-connections',
     AI_GUIDE_MESSAGES.makeConnections,
@@ -985,18 +1004,26 @@ showStepAlert({
       type: 'info',
     }
   )
-}
+}*/
   setCheckRequest((current) => current + 1)
 }
   const handleToggleCurrentSource = () => {
   if (!currentSourceOn && !connectionsVerified) {
     setStatus('Check the circuit connections before switching on the current source.')
-    showStepAlert(EXPERIMENT_ALERTS.cannotStartPower)
+    showAlertWithOptionalAudio(
+  {
+    title: 'Cannot Start Power - Complete Connections First',
+    description: 'Run CHECK and correct the circuit wiring before powering the supply.',
+    type: 'warning',
+    icon: '⚠️',
+  },
+  'Please check the connections first.'
+)
     return
   }
 
   if (!currentSourceOn && powerOn && (!observations.voltageSourceOnly || !observations.currentSourceOnly)) {
-    showStepAlert({
+    showAlertWithOptionalAudio({
       title: 'Wrong Source Combination',
       description: 'Both sources should be switched ON only after completing individual source cases.',
       type: 'warning',
@@ -1061,7 +1088,7 @@ setStatus('Current source switched on. Adjust current and add the reading.')
     type: 'warning',
   }
 )
-  showStepAlert({
+  showAlertWithOptionalAudio({
     title: 'Complete Current Source Case First',
     description: 'First perform Current Source Only case before switching ON the voltage source.',
     type: 'warning',
@@ -1079,7 +1106,7 @@ setStatus('Current source switched on. Adjust current and add the reading.')
   }*/
 
   if (!powerOn && currentSourceOn && (!observations.voltageSourceOnly || !observations.currentSourceOnly)) {
-    showStepAlert({
+    showAlertWithOptionalAudio({
       title: 'Wrong Source Combination',
       description: 'Both sources should be switched ON only after completing individual source cases.',
       type: 'warning',
@@ -1140,7 +1167,7 @@ setStatus('Voltage source switched on. Adjust voltage and add the reading.')
     type: 'warning',
   }
 )
-  showStepAlert({
+  showAlertWithOptionalAudio({
     title: 'Set Resistance First',
     description: 'Please set R1, R2 and R3 before making circuit connections.',
     icon: '⚠️',
@@ -1410,18 +1437,19 @@ onConnectionChange={(count) => {
   onGenerateReport={handleGenerateReport}
   readingCount={readingCount}
   reportGenerated={reportGenerated}
+  calculationsVerified={calculationsVerified}
 />
 <button
   className="formula-button"
   type="button"
   onClick={() => setShowFormulaPanel(true)}
 >
-  Formulae
+  Equations
 </button>
 {showFormulaPanel && (
   <div className="formula-panel">
     <div className="formula-panel__header">
-      <h3>Formulae Used</h3>
+      <h3>Equations Used</h3>
 
       <button
         className="formula-panel__close"
@@ -1535,6 +1563,7 @@ onConnectionChange={(count) => {
   autoFillTrigger={autoFillTrigger}
   calculationResetTrigger={calculationResetTrigger}
   setInstructionStep={setInstructionStep}
+  onVerificationComplete={() => setCalculationsVerified(true)}
 />
 
           {/* <GraphPanel
