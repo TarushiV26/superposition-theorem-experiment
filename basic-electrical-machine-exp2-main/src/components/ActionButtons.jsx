@@ -37,13 +37,6 @@ const buttons = [
     handlerName: 'onCheck',
   },
   {
-  id: 'calculate-button',
-  label: 'CALCULATE',
-  tone: 'action-button--orange',
-  Icon: CalculationIcon,
-  handlerName: 'onCalculate',
-},
-  {
     id: 'auto-connect-button',
     label: 'AUTO CONNECT',
     tone: 'action-button--teal',
@@ -57,6 +50,13 @@ const buttons = [
     Icon: AddIcon,
     handlerName: 'onAdd',
   },
+  {
+  id: 'calculate-button',
+  label: 'CALCULATE',
+  tone: 'action-button--orange',
+  Icon: CalculationIcon,
+  handlerName: 'onCalculate',
+},
   /*{
     id: 'plot-button',
     label: 'PLOT',

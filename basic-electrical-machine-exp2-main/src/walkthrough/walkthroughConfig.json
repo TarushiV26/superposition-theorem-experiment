@@ -13,7 +13,7 @@
         "en": "Experiment Goal"
       },
       "description": {
-        "en": "This experiment verifies the Superposition Theorem by recording branch currents for current source only, voltage source only, and both sources connected."
+        "en": "To verify the Superposition Theorem by recording the branch currents under three conditions: (i) with only the current source active, (ii) with only the voltage source active, and (iii) with both sources connected"
       },
       "audio": "#",
       "placement": "bottom"
@@ -33,7 +33,7 @@
   "target": "#ai-guide-button",
   "title": { "en": "AI Guide" },
   "description": {
-    "en": "Click AI Guide to get step-by-step help during the experiment."
+    "en": "To use this feature, click on the “AI Guide” button. The AI guide will assist you in performing the simulation accurately at each step."
   },
   "placement": "bottom"
 },
@@ -64,7 +64,7 @@
   "target": "#auto-connect-button",
   "title": { "en": "Auto Connect" },
   "description": {
-    "en": "Click AUTO CONNECT to automatically make the required connections for the current case. Case 1 connects Current Source Only, Case 2 connects Voltage Source Only, and Case 3 connects both sources."
+    "en": "Click on the AUTO CONNECT button to automatically make the required connections for the selected case as per the given instructions.\nCase 1: Connects the Current Source only and short-circuits the voltage source.\nCase 2: Connects the Voltage Source only and open-circuits the current source.\nCase 3: Connects both the Current Source and Voltage Source."
   },
   "audio": "#",
   "placement": "right"

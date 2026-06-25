@@ -1113,7 +1113,8 @@ export const generateKclReport = ({ observations, resistances, sessionStart }) =
 
   return true
 }
-export const generateSuperpositionReport = ({ observations, resistances, sessionStart }) => {
+
+/*export const generateSuperpositionReport = ({ observations, resistances, sessionStart }) => {
   const baseHref = new URL(import.meta.env.BASE_URL, window.location.origin).href
 const iitLogoSrc = new URL('../assets/IIT Logo.png', import.meta.url).href
 const virtualLabsLogoSrc = new URL('../assets/image.png', import.meta.url).href
@@ -1380,6 +1381,545 @@ const virtualLabsLogoSrc = new URL('../assets/image.png', import.meta.url).href
       <button onclick="window.print()">PRINT</button>
     </div>
   </div>
+</body>
+</html>
+  `
+
+  const reportBlob = new Blob([html], { type: 'text/html' })
+  const reportUrl = URL.createObjectURL(reportBlob)
+  const reportWindow = window.open(reportUrl, '_blank')
+
+  if (!reportWindow) {
+    URL.revokeObjectURL(reportUrl)
+    return false
+  }
+
+  window.setTimeout(() => {
+    URL.revokeObjectURL(reportUrl)
+  }, 60000)
+
+  reportWindow.focus()
+  return true
+}*/
+const getSuperpositionCase = (observations, caseName) => (
+  observations.find((row) => row.caseName === caseName) ?? {}
+)
+
+const getSuperpositionDifference = (csValue, vsValue, bothValue) => (
+  toNumber(bothValue) - (toNumber(csValue) + toNumber(vsValue))
+)
+
+const createSuperpositionObservationRows = (observations) => (
+  observations.map((row, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(row.caseName)}</td>
+      <td>${formatNumber(row.i1)}</td>
+      <td>${formatNumber(row.i2)}</td>
+      <td>${formatNumber(row.i3)}</td>
+    </tr>
+  `).join('')
+)
+export const generateSuperpositionReport = ({ observations, resistances, sessionStart }) => {
+  const baseHref = new URL(import.meta.env.BASE_URL, window.location.origin).href
+  const iitLogoSrc = new URL('../assets/IIT Logo.png', import.meta.url).href
+  const virtualLabsLogoSrc = new URL('../assets/image.png', import.meta.url).href
+
+  const reportDate = new Date()
+  const sessionEnd = reportDate.getTime()
+
+  const reportDateText = reportDate.toLocaleDateString(undefined, {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+
+  const startTimeText = new Date(sessionStart).toLocaleTimeString()
+  const endTimeText = reportDate.toLocaleTimeString()
+  const durationText = getSessionDurationText(sessionStart, sessionEnd)
+
+  const r1 = toNumber(resistances?.r1)
+  const r2 = toNumber(resistances?.r2)
+  const r3 = toNumber(resistances?.r3)
+
+  const cs = getSuperpositionCase(observations, 'Current Source Only')
+  const vs = getSuperpositionCase(observations, 'Voltage Source Only')
+  const both = getSuperpositionCase(observations, 'Both Sources Active')
+
+  const observationRows = createSuperpositionObservationRows(observations)
+
+  const verificationRows = ['i1', 'i2', 'i3'].map((key, index) => {
+    const label = `I${index + 1}`
+    const calculated = toNumber(cs[key]) + toNumber(vs[key])
+    const observed = toNumber(both[key])
+    const difference = getSuperpositionDifference(cs[key], vs[key], both[key])
+
+    return `
+      <tr>
+        <td>${label}</td>
+        <td>${formatNumber(cs[key])}</td>
+        <td>${formatNumber(vs[key])}</td>
+        <td>${formatNumber(calculated)}</td>
+        <td>${formatNumber(observed)}</td>
+        <td>${formatNumber(Math.abs(difference), 4)}</td>
+      </tr>
+    `
+  }).join('')
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Superposition Theorem Simulation Report</title>
+  <base href="${escapeHtml(baseHref)}">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 16px 36px;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      color: #26384d;
+      background: linear-gradient(180deg, #eef4fb 0%, #f8fafc 100%);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .report-page {
+      width: min(100%, 960px);
+      margin: 0 auto;
+      padding: 28px 34px;
+      background: #ffffff;
+      border: 1px solid #d9e3ef;
+      border-radius: 16px;
+      box-shadow: 0 16px 34px rgba(31, 55, 80, 0.12);
+    }
+
+    .header-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 170px;
+      gap: 20px;
+      align-items: center;
+      padding-bottom: 18px;
+      margin-bottom: 26px;
+      border-bottom: 3px solid #2f7bfa;
+    }
+
+    .report-logo {
+      object-fit: contain;
+    }
+
+    .report-logo--iit {
+      width: 88px;
+      height: 88px;
+      justify-self: start;
+    }
+
+    .report-logo--vlab {
+      width: 165px;
+      max-height: 86px;
+      justify-self: end;
+    }
+
+    .title-block {
+      text-align: center;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      color: #1d3147;
+      font-size: 30px;
+      line-height: 1.15;
+      font-weight: 750;
+    }
+
+    .lab-tag {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      color: #2261b8;
+      background: #e9f2ff;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .overview-card,
+    .section {
+      margin-bottom: 18px;
+      padding: 18px 20px;
+      background: #f8fbff;
+      border: 1px solid #e3ebf5;
+      border-radius: 14px;
+    }
+
+    .experiment-title {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .experiment-title strong {
+      color: #1f2d3d;
+    }
+
+    .date-line {
+      margin: 0 0 14px;
+      color: #51677d;
+      font-weight: 600;
+    }
+
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .time-card {
+      padding: 14px 16px;
+      background: #ffffff;
+      border: 1px solid #e2eaf3;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(31, 55, 80, 0.05);
+    }
+
+    .time-card strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #24384d;
+      font-size: 14px;
+    }
+
+    .time-card span {
+      color: #53697f;
+      font-weight: 600;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      color: #24384d;
+      font-size: 21px;
+    }
+
+    h3 {
+      margin: 14px 0 7px;
+      color: #25384d;
+      font-size: 15px;
+    }
+
+    p {
+      margin: 0 0 9px;
+      text-align: justify;
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    .two-column-list {
+      column-count: 2;
+      column-gap: 34px;
+    }
+
+    .table-shell {
+      overflow-x: auto;
+      background: #ffffff;
+      border: 1px solid #dce6f0;
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+    }
+
+    th,
+    td {
+      padding: 10px 11px;
+      border: 1px solid #dce6f0;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    th {
+      color: #ffffff;
+      background: linear-gradient(135deg, #2f7bfa, #1f62d0);
+      font-weight: 750;
+    }
+
+    tr:nth-child(even) td {
+      background: #f9fcff;
+    }
+
+    .formula-box {
+      margin-top: 10px;
+      padding: 13px 15px;
+      color: #3d2b13;
+      background: #fff8dc;
+      border: 1px solid #ead37b;
+      border-radius: 10px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .result-note {
+      padding: 14px 16px;
+      background: #ecfdf3;
+      border: 1px solid #bce8c9;
+      border-radius: 12px;
+      color: #245336;
+      font-weight: 700;
+    }
+
+    .report-actions {
+      width: min(100%, 960px);
+      margin: 18px auto 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .print-btn,
+    .download-btn {
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 999px;
+      color: #ffffff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .print-btn {
+      background: linear-gradient(135deg, #2f7bfa, #1f62d0);
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #27ae60, #168a43);
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 12mm;
+      }
+
+      body {
+        padding: 0;
+        background: #ffffff;
+      }
+
+      .report-page {
+        width: 100%;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .report-actions {
+        display: none;
+      }
+
+      .section,
+      .overview-card,
+      tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="report-page" id="report-document">
+    <div class="header-row">
+      <img src="${escapeHtml(iitLogoSrc)}" class="report-logo report-logo--iit" alt="IIT Roorkee logo">
+
+      <div class="title-block">
+        <h1>Virtual Labs Simulation Report</h1>
+      </div>
+
+      <img src="${escapeHtml(virtualLabsLogoSrc)}" class="report-logo report-logo--vlab" alt="Virtual Labs logo">
+    </div>
+
+    <section class="overview-card">
+      <span class="lab-tag">Basic Electrical Science Lab</span>
+
+      <p class="experiment-title">
+        <strong>Experiment Title:</strong>
+        To Verify Superposition Theorem
+      </p>
+
+      <p class="date-line">
+        <strong>Date:</strong> ${escapeHtml(reportDateText)}
+      </p>
+
+      <div class="time-grid">
+        <div class="time-card">
+          <strong>Start Time</strong>
+          <span>${escapeHtml(startTimeText)}</span>
+        </div>
+
+        <div class="time-card">
+          <strong>End Time</strong>
+          <span>${escapeHtml(endTimeText)}</span>
+        </div>
+
+        <div class="time-card">
+          <strong>Total Time Spent</strong>
+          <span>${escapeHtml(durationText)}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Summary</h2>
+
+      <h3>Aim</h3>
+      <p>
+        To verify Superposition Theorem in a linear resistive electrical network
+        using one independent current source and one independent voltage source.
+      </p>
+
+      <h3>Simulation Summary</h3>
+      <p>
+        The circuit was connected and verified for three operating conditions:
+        current source active, voltage source active, and both sources active.
+        The branch currents I1, I2 and I3 were recorded for each case and compared
+        using the principle of superposition.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Components and Key Parameters</h2>
+
+      <ul class="two-column-list">
+        <li>DC Current Source</li>
+        <li>DC Voltage Source</li>
+        <li>Ammeter A1 for I1</li>
+        <li>Ammeter A2 for I2</li>
+        <li>Ammeter A3 for I3</li>
+        <li>Resistor R1: ${formatNumber(r1, 1)} &Omega;</li>
+        <li>Resistor R2: ${formatNumber(r2, 1)} &Omega;</li>
+        <li>Resistor R3: ${formatNumber(r3, 1)} &Omega;</li>
+        <li>Connecting wires</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Observation Table</h2>
+
+      <div class="table-shell">
+        <table>
+          <thead>
+            <tr>
+              <th>S.No.</th>
+              <th>Case</th>
+              <th>I1 (A)</th>
+              <th>I2 (A)</th>
+              <th>I3 (A)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${observationRows}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Calculations and Verification</h2>
+
+      <div class="formula-box">
+        I(total) = I(current source only) + I(voltage source only)
+      </div>
+
+      <div class="table-shell" style="margin-top: 14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Branch Current</th>
+              <th>Current Source Only (A)</th>
+              <th>Voltage Source Only (A)</th>
+              <th>Algebraic Sum (A)</th>
+              <th>Both Sources Active (A)</th>
+              <th>Absolute Difference (A)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${verificationRows}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Conclusion</h2>
+
+      <p class="result-note">
+        The branch currents obtained with both sources active are equal to the
+        algebraic sum of the corresponding currents obtained when each independent
+        source acts alone. Hence, Superposition Theorem is verified.
+      </p>
+    </section>
+  </main>
+
+  <div class="report-actions" data-html2canvas-ignore="true">
+    <button class="print-btn" type="button" onclick="window.print()">PRINT</button>
+    <button class="download-btn" type="button" onclick="downloadReport()">DOWNLOAD REPORT</button>
+  </div>
+
+  <script>
+    function ensureHtml2Pdf() {
+      return new Promise(function(resolve, reject) {
+        if (window.html2pdf) return resolve();
+
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    function downloadReport() {
+      ensureHtml2Pdf().then(function() {
+        var element = document.getElementById('report-document');
+
+        var opts = {
+          margin: [0.18, 0.18, 0.18, 0.18],
+          filename: 'superposition-theorem-report.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0
+          },
+          jsPDF: {
+            unit: 'in',
+            format: 'a4',
+            orientation: 'portrait'
+          }
+        };
+
+        return window.html2pdf().set(opts).from(element).save();
+      }).catch(function() {
+        alert('Unable to download the report automatically. Please use your browser Save as PDF option.');
+      });
+    }
+  </script>
 </body>
 </html>
   `
