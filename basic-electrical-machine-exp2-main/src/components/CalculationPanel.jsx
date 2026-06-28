@@ -18,7 +18,17 @@ const format = (value) => {
   return Number(number.toFixed(3)).toString()
 }
 
-const CalculationPanel = ({ observations, resistanceValues, currentValue, voltageValue, autoFillTrigger,onVerificationComplete,calculationResetTrigger,setInstructionStep }) => {
+const CalculationPanel = ({
+  observations,
+  resistanceValues,
+  currentValue,
+  voltageValue,
+  autoFillTrigger,
+  onVerificationComplete,
+  calculationResetTrigger,
+  setInstructionStep,
+  onPlayAiGuideAudio,
+}) => {
   const [sourceValues, setSourceValues] = useState({
     r1: '',
     r2: '',
