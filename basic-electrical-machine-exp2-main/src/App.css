@@ -1790,8 +1790,15 @@ textarea {
   object-fit: fill;
 }
 .current-source__image--off {
-  top:1px;
-  height: 180px;
+  top:-2px;
+  height: 183px;
+}
+.current-source__image--on {
+  top: -8px !important;
+  left: 2px !important;
+  width: 230px !important;
+  height: 178px !important;
+  object-fit: fill !important;
 }
 .action-instructions-panel__substeps ol {
   list-style-type: lower-alpha;
@@ -1998,4 +2005,23 @@ textarea {
 .verify-button:active:not(:disabled) {
   transform: translateY(3px) scale(0.98);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.ai-guide-terminal-highlight {
+  outline: 4px solid #facc15 !important;
+  outline-offset: 5px;
+  box-shadow:
+    0 0 0 6px rgba(250, 204, 21, 0.28),
+    0 0 22px rgba(250, 204, 21, 0.95) !important;
+  animation: ai-guide-terminal-pulse 900ms ease-in-out infinite alternate;
+  z-index: 20;
+}
+
+@keyframes ai-guide-terminal-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.18);
+  }
 }

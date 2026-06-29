@@ -47,6 +47,7 @@ const ConnectionLab = ({
   onConnectionDetached,
   onConnectionAdded,
   sourcesLocked = false,
+  activeGuideTerminals = [],
   lockedConnections = {
   ammeters: false,
   voltageSource: false,
@@ -57,9 +58,40 @@ const ConnectionLab = ({
   const instanceRef = useRef(null)
   const onCheckConnectionsRef = useRef(onCheckConnections)
   const scaleRef = useRef(getJsPlumbZoom(scale))
+  const onConnectionAddedRef = useRef(onConnectionAdded)
+const onConnectionDetachedRef = useRef(onConnectionDetached)
+const onConnectionChangeRef = useRef(onConnectionChange)
 
   const [isLocked, setIsLocked] = useState(false)
   const [ammeterCurrentKeys, setAmmeterCurrentKeys] = useState(DEFAULT_AMMETER_CURRENT_KEYS)
+  useEffect(() => {
+  if (typeof document === 'undefined') return undefined
+
+  document
+    .querySelectorAll('.ai-guide-terminal-highlight')
+    .forEach((element) => {
+      element.classList.remove('ai-guide-terminal-highlight')
+    })
+
+  activeGuideTerminals.forEach((terminalId) => {
+    document
+      .getElementById(terminalId)
+      ?.classList.add('ai-guide-terminal-highlight')
+  })
+
+  return () => {
+    activeGuideTerminals.forEach((terminalId) => {
+      document
+        .getElementById(terminalId)
+        ?.classList.remove('ai-guide-terminal-highlight')
+    })
+  }
+}, [activeGuideTerminals])
+useEffect(() => {
+  onConnectionAddedRef.current = onConnectionAdded
+  onConnectionDetachedRef.current = onConnectionDetached
+  onConnectionChangeRef.current = onConnectionChange
+}, [onConnectionAdded, onConnectionDetached, onConnectionChange])
 
   useEffect(() => {
     onCheckConnectionsRef.current = onCheckConnections
@@ -134,14 +166,14 @@ const notifyConnectionChange = () => {
       ? instance.getAllConnections()
       : instance.getConnections?.()
 
-  onConnectionChange?.(connections?.length ?? 0)
+  onConnectionChangeRef.current?.(connections?.length ?? 0)
 }
 
 const handleConnectionAdded = (info) => {
   const sourceId = info.sourceId || info.source?.id
   const targetId = info.targetId || info.target?.id
 
-  onConnectionAdded?.(sourceId, targetId)
+ onConnectionAddedRef.current?.(sourceId, targetId)
 
   window.setTimeout(() => {
     notifyConnectionChange()
@@ -152,7 +184,7 @@ const handleConnectionDetached = (connection) => {
   const sourceId = connection.sourceId || connection.source?.id
   const targetId = connection.targetId || connection.target?.id
 
-  onConnectionDetached?.(sourceId, targetId)
+  onConnectionDetachedRef.current?.(sourceId, targetId)
   notifyConnectionChange()
 }
 

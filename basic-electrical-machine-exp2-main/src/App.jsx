@@ -79,7 +79,106 @@ const AI_GUIDE_AUDIO = {
   reset:
     '/ai-guide-audio/Reset.wav',
 }
- 
+ const AI_GUIDE_CONNECTION_STEPS = {
+  case1: [
+    {
+      key: 'case1-1-9',
+      terminals: ['1-endpoint', '9-endpoint'],
+      text: "Let's start with case-1 connection",
+      audio: null,
+    },
+    {
+      key: 'case1-2-10',
+      terminals: ['2-endpoint', '10-endpoint'],
+      //text: 'Connect terminal 2 to terminal 10.',
+      audio: null,
+    },
+    {
+      key: 'case1-17-18',
+      terminals: ['17-endpoint', '18-endpoint'],
+      //text: 'Short voltage source terminals 17 to 18.',
+      audio: null,
+    },
+    {
+      key: 'case1-3-11',
+      terminals: ['3-endpoint', '11-endpoint'],
+      //text: 'Connect terminal 3 to terminal 11.',
+      audio: null,
+    },
+    {
+      key: 'case1-4-12',
+      terminals: ['4-endpoint', '12-endpoint'],
+      //text: 'Connect terminal 4 to terminal 12.',
+      audio: null,
+    },
+    {
+      key: 'case1-5-13',
+      terminals: ['5-endpoint', '13-endpoint'],
+      //text: 'Connect terminal 5 to terminal 13.',
+      audio: null,
+    },
+    {
+      key: 'case1-6-14',
+      terminals: ['6-endpoint', '14-endpoint'],
+      //text: 'Connect terminal 6 to terminal 14.',
+      audio: null,
+    },
+    {
+      key: 'case1-7-15',
+      terminals: ['7-endpoint', '15-endpoint'],
+      //text: 'Connect terminal 7 to terminal 15.',
+      audio: null,
+    },
+    {
+      key: 'case1-8-16',
+      terminals: ['8-endpoint', '16-endpoint'],
+      //text: 'Connect terminal 8 to terminal 16.',
+      audio: null,
+    },
+  ],
+
+  case2: [
+    {
+      key: 'case2-17-19',
+      terminals: ['17-endpoint', '19-endpoint'],
+      text: "Let's start with case-2 connection",
+      audio: null,
+    },
+    {
+      key: 'case2-18-20',
+      terminals: ['18-endpoint', '20-endpoint'],
+      //text: 'Connect terminal 18 to terminal 20.',
+      audio: null,
+    },
+  ],
+
+  case3: [
+    {
+      key: 'case3-1-9',
+      terminals: ['1-endpoint', '9-endpoint'],
+      text: "Let's start with case-3 connection",
+      audio: null,
+    },
+    {
+      key: 'case3-2-10',
+      terminals: ['2-endpoint', '10-endpoint'],
+      //text: 'Connect terminal 2 to terminal 10.',
+      audio: null,
+    },
+    /*{
+      key: 'case3-17-19',
+      terminals: ['17-endpoint', '19-endpoint'],
+      text: 'Keep voltage source connected from terminal 17 to terminal 19.',
+      audio: null,
+    },
+    {
+      key: 'case3-18-20',
+      terminals: ['18-endpoint', '20-endpoint'],
+      text: 'Keep voltage source connected from terminal 18 to terminal 20.',
+      audio: null,
+    },*/
+  ],
+}
 const BASE_WIDTH = 1440
 const BASE_HEIGHT = 960
 const GRAPH_SECTION_GAP = 28
@@ -128,6 +227,7 @@ const CASE_CONNECTIONS = {
     ['8-endpoint', '16-endpoint'],
   ],
 }
+
 
 const getObservationSignature = ({ i1, i2, i3, voltage }) => (
   [
@@ -219,6 +319,11 @@ const [sourcesLocked, setSourcesLocked] = useState(false)
 const [calculationResetTrigger, setCalculationResetTrigger] = useState(0)
 const [showFormulaPanel, setShowFormulaPanel] = useState(false)
 const [aiGuideEnabled, setAiGuideEnabled] = useState(false)
+const [activeGuideTerminals, setActiveGuideTerminals] = useState([])
+const [manualGuideCase, setManualGuideCase] = useState(null)
+const [manualGuideIndex, setManualGuideIndex] = useState(0)
+const manualGuideCaseRef = useRef(null)
+const manualGuideIndexRef = useRef(0)
 const lastGuideMessageRef = useRef('')
 const resistanceGuideTimerRef = useRef(null)
 const case1IntroSpokenRef = useRef(false)
@@ -304,9 +409,115 @@ useEffect(() => {
     case1IntroSpokenRef.current = true
     instructionStepRef.current = 'case1-connections'
     setInstructionStep('case1-connections')
+    if (aiGuideEnabled) {
+  startManualConnectionGuide('case1')
+}
   }, 1200)
 }
 const normalizePair = (a, b) => [a, b].sort().join('|')
+
+const normalizeTerminalId = (id) => {
+  if (!id) return ''
+  const value = String(id)
+  return value.endsWith('-endpoint') ? value : `${value}-endpoint`
+}
+
+const isSamePair = (firstPair, secondPair) => (
+  normalizePair(
+    normalizeTerminalId(firstPair[0]),
+    normalizeTerminalId(firstPair[1]),
+  ) === normalizePair(
+    normalizeTerminalId(secondPair[0]),
+    normalizeTerminalId(secondPair[1]),
+  )
+)
+const getCurrentManualGuideStep = () => {
+  const caseKey = manualGuideCaseRef.current
+  const index = manualGuideIndexRef.current
+
+  if (!caseKey) return null
+
+  return AI_GUIDE_CONNECTION_STEPS[caseKey]?.[index] ?? null
+}
+const startManualConnectionGuide = (caseKey) => {
+  const firstStep = AI_GUIDE_CONNECTION_STEPS[caseKey]?.[0]
+
+  if (!firstStep) return
+
+  setManualGuideCase(caseKey)
+  setManualGuideIndex(0)
+  manualGuideCaseRef.current = caseKey
+manualGuideIndexRef.current = 0
+  setActiveGuideTerminals(firstStep.terminals)
+
+  showAlertWithOptionalAudio(
+    {
+      title: 'AI Guide Connection Step',
+      description: firstStep.text,
+      type: 'info',
+      icon: '🤖',
+    },
+    firstStep.audio
+  )
+}
+
+const repeatManualConnectionStep = (step) => {
+  if (!step) return
+
+  setActiveGuideTerminals(step.terminals)
+
+  showAlertWithOptionalAudio(
+    {
+      title: 'Wrong Connection',
+      description: `This connection is wrong. ${step.text}`,
+      type: 'warning',
+      icon: '⚠️',
+    },
+    step.audio
+  )
+}
+
+const advanceManualConnectionStep = () => {
+  const caseKey = manualGuideCaseRef.current
+  const currentIndex = manualGuideIndexRef.current
+  const nextIndex = currentIndex + 1
+  const nextStep = AI_GUIDE_CONNECTION_STEPS[caseKey]?.[nextIndex]
+
+  console.log('ADVANCE GUIDE:', {
+    caseKey,
+    currentIndex,
+    nextIndex,
+    nextStep,
+  })
+
+  if (!nextStep) {
+    setActiveGuideTerminals([])
+    setManualGuideCase(null)
+    setManualGuideIndex(0)
+    manualGuideCaseRef.current = null
+    manualGuideIndexRef.current = 0
+
+    showAlertWithOptionalAudio({
+      title: 'Connections Completed',
+      description: 'Required manual connections are completed. Click CHECK to verify the connections.',
+      type: 'success',
+      icon: '✅',
+    }, null)
+
+    return
+  }
+
+  manualGuideIndexRef.current = nextIndex
+  setManualGuideIndex(nextIndex)
+  setActiveGuideTerminals([...nextStep.terminals])
+
+  /*showAlertWithOptionalAudio({
+    title: 'Next Connection',
+    description: nextStep.text,
+    type: 'info',
+    icon: '🤖',
+  }, nextStep.audio)*/
+}
 
 const requiredCase1Removals = new Set([
   normalizePair('1-endpoint', '9-endpoint'),
@@ -1215,8 +1426,12 @@ setStatus('Current source switched on. Adjust current and add the reading.')
   voltageLimitWarningShownRef.current = false
 
   if (observations.currentSourceOnly && observations.voltageSourceOnly && !observations.bothSources) {
-    setInstructionStep('case3-connections')
+  setInstructionStep('case3-connections')
+
+  if (aiGuideEnabled) {
+    startManualConnectionGuide('case3')
   }
+}
 
   setStatus('Voltage source switched off.')
   return
@@ -1398,6 +1613,7 @@ setR3={(value) => handleResistanceChange('r3', setR3, value)}
                   current={current}
                   sourcesLocked={sourcesLocked}
                   lockedConnections={lockedConnections}
+                  activeGuideTerminals={activeGuideTerminals}
                   setCurrent={(value) => {
   setCurrent(value)
 
@@ -1469,9 +1685,13 @@ setR3={(value) => handleResistanceChange('r3', setR3, value)}
   removedAfterCase1Ref.current.add(pairKey)
 
   if (removedAfterCase1Ref.current.size === 3) {
-    instructionStepRef.current = 'case2-connections'
-    setInstructionStep('case2-connections')
+  instructionStepRef.current = 'case2-connections'
+  setInstructionStep('case2-connections')
+
+  if (aiGuideEnabled) {
+    startManualConnectionGuide('case2')
   }
+}
 }}
 onConnectionChange={(count) => {
   const currentStep = instructionStepRef.current
@@ -1479,7 +1699,7 @@ onConnectionChange={(count) => {
 
   console.log('COUNT:', count, 'STEP:', currentStep)
 
-  if (
+  /*if (
     currentStep === 'case1-connections' &&
     !latestObservations.currentSourceOnly &&
     count >= 9
@@ -1487,7 +1707,7 @@ onConnectionChange={(count) => {
     instructionStepRef.current = 'case1-check'
     setInstructionStep('case1-check')
     return
-  }
+  }*/
 
   if (
     currentStep === 'case3-connections' &&
@@ -1501,6 +1721,26 @@ onConnectionChange={(count) => {
   }
 }}
        onConnectionAdded={(sourceId, targetId) => {
+  const currentGuideStep = getCurrentManualGuideStep()
+
+  console.log('GUIDE STEP:', currentGuideStep)
+  console.log('SOURCE TARGET:', sourceId, targetId)
+  console.log('EXPECTED PAIR:', currentGuideStep?.terminals)
+  console.log('PAIR MATCH:', isSamePair([sourceId, targetId], currentGuideStep?.terminals ?? []))
+
+  if (aiGuideEnabled && currentGuideStep) {
+    const actualPair = [sourceId, targetId]
+
+    if (!isSamePair(actualPair, currentGuideStep.terminals)) {
+      repeatManualConnectionStep(currentGuideStep)
+      return
+    }
+
+    console.log('CALLING ADVANCE NOW')
+    advanceManualConnectionStep()
+    return
+  }
+
   const latestObservations = observationsRef.current
   const pairKey = normalizePair(sourceId, targetId)
 
@@ -1511,8 +1751,6 @@ onConnectionChange={(count) => {
   if (!requiredCase2VoltageAdds.has(pairKey)) return
 
   addedCase2VoltageRef.current.add(pairKey)
-
-  console.log('Case 2 voltage added:', addedCase2VoltageRef.current.size)
 
   if (addedCase2VoltageRef.current.size === 2) {
     instructionStepRef.current = 'case2-check'
