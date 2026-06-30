@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import defaultWalkthroughConfig from './walkthroughConfig.json'
 import { WalkthroughContext } from './WalkthroughContext.js'
@@ -34,6 +34,7 @@ const WalkthroughProvider = ({
   children,
   config = defaultWalkthroughConfig,
   locale,
+  onComplete,
 }) => {
   const walkthroughConfig = useMemo(
     () => loadWalkthroughConfig(config, locale ?? config?.defaultLocale),
@@ -43,6 +44,8 @@ const WalkthroughProvider = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isPositioningTarget, setIsPositioningTarget] = useState(false)
   const [targetRect, setTargetRect] = useState(null)
+  const audioRef = useRef(null)
+const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 
   const totalSteps = walkthroughConfig.steps.length
   const activeStep = isOpen ? walkthroughConfig.steps[currentStepIndex] : null
@@ -85,24 +88,99 @@ const WalkthroughProvider = ({
     moveToStep(stepIndex)
     setIsOpen(true)
   }, [moveToStep])
+  const stopAudio = useCallback(() => {
+  if (audioRef.current) {
+    audioRef.current.pause()
+    audioRef.current.currentTime = 0
+    audioRef.current = null
+  }
 
-  const close = useCallback(() => {
-    setIsOpen(false)
-    setIsPositioningTarget(false)
-    setTargetRect(null)
-  }, [])
+  setIsAudioPlaying(false)
+}, [])
+  const close = useCallback((completed = false) => {
+  stopAudio()
 
+  setIsOpen(false)
+  setIsPositioningTarget(false)
+  setTargetRect(null)
+
+  if (completed) {
+    window.dispatchEvent(new Event('walkthrough-complete'))
+    onComplete?.()
+  }
+}, [onComplete, stopAudio])
   const next = useCallback(() => {
-    moveToStep(currentStepIndex + 1)
-  }, [currentStepIndex, moveToStep])
+  stopAudio()
 
+  if (currentStepIndex >= totalSteps - 1) {
+    close(true)
+    return
+  }
+
+  moveToStep(currentStepIndex + 1)
+}, [
+  close,
+  currentStepIndex,
+  moveToStep,
+  stopAudio,
+  totalSteps,
+])
   const previous = useCallback(() => {
-    moveToStep(currentStepIndex - 1)
-  }, [currentStepIndex, moveToStep])
+  stopAudio()
+  moveToStep(currentStepIndex - 1)
+}, [
+  currentStepIndex,
+  moveToStep,
+  stopAudio,
+])
 
  const goToStep = useCallback ((stepIndex) => {
     moveToStep(stepIndex)
   }, [moveToStep])
+  
+
+
+const playStepAudio = useCallback(() => {
+  if (!activeStep?.audio) return
+
+  stopAudio()
+
+  const audio = new Audio(encodeURI(activeStep.audio))
+  audioRef.current = audio
+
+  audio.onended = () => {
+    setIsAudioPlaying(false)
+  }
+
+  setIsAudioPlaying(true)
+
+  audio.play().catch((err) => {
+    console.error('Walkthrough audio failed:', err)
+    setIsAudioPlaying(false)
+  })
+}, [activeStep, stopAudio])
+
+const toggleStepAudio = useCallback(() => {
+  if (!activeStep?.audio) return
+
+  if (!audioRef.current) {
+    playStepAudio()
+    return
+  }
+
+  if (audioRef.current.paused) {
+    setIsAudioPlaying(true)
+    audioRef.current.play().catch(() => setIsAudioPlaying(false))
+  } else {
+    audioRef.current.pause()
+    setIsAudioPlaying(false)
+  }
+}, [activeStep, playStepAudio])
+
+const skipToLastStep = useCallback(() => {
+  stopAudio()
+  moveToStep(totalSteps - 1)
+}, [moveToStep, stopAudio, totalSteps])
 useEffect(() => {
   if (!isOpen || !activeTargetSelector) {
     return undefined
@@ -192,6 +270,18 @@ useEffect(() => {
     document.body.style.overflow = ''
   }
 }, [isOpen])
+useEffect(() => {
+  if (!isOpen || !activeStep?.audio) {
+    stopAudio()
+    return
+  }
+
+  playStepAudio()
+
+  return () => {
+    stopAudio()
+  }
+}, [activeStep, isOpen, playStepAudio, stopAudio])
 
   useEffect(() => {
     if (!isOpen) {
@@ -241,6 +331,9 @@ useEffect(() => {
     start,
     targetRect,
     totalSteps,
+    isAudioPlaying,
+skipToLastStep,
+toggleStepAudio,
   }), [
     activeStep,
     autoPlayAudioForStep,

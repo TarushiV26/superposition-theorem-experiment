@@ -78,6 +78,29 @@ const AI_GUIDE_AUDIO = {
 
   reset:
     '/ai-guide-audio/Reset.wav',
+    aiGuideClick: '/ai-guide-audio/AI Guide click.wav',
+walkthroughComplete: '/ai-guide-audio/The simulation walkthrough is now complete.wav',
+chooseAutoOrManual: '/ai-guide-audio/Now, you may either click the Auto Connect button.wav',
+
+connect5To13: '/ai-guide-audio/Connect terminal 5 to terminal 13.wav',
+connect6To14: '/ai-guide-audio/Connect terminal 6 to terminal 14..wav',
+connect7To15: '/ai-guide-audio/Connect terminal 7 to terminal 15.wav',
+connect8To16: '/ai-guide-audio/Last connect terminal 8 to terminal 16..wav',
+short17To18: '/ai-guide-audio/now short terminal voltage to 17 to 18.wav',
+allConnectionsComplete: '/ai-guide-audio/Guide all complete conn.wav',
+
+wrongConnection: '/ai-guide-audio/Wrong connection.wav',
+multipleWrongConnections: '/ai-guide-audio/Multiple wrong connections.wav',
+
+verifyCorrect: '/ai-guide-audio/Verify button click, correct calculations.wav',
+verifyIncorrect: '/ai-guide-audio/Verify button click, Incorrect calculations.wav',
+
+beforeCase3Check: '/ai-guide-audio/Before clicking the Check button for Case 3 connections.wav',
+correctConnection1To9: '/ai-guide-audio/Correct Connections.wav',
+connect2To10: "/ai-guide-audio/Let's move on to the next connection.wav",
+connect3To11: "/ai-guide-audio/Next, connect the ammeter's terminal 3 to terminal 11..wav",
+
+connect4To12: "/ai-guide-audio/Connect terminal 4 to terminal 12..wav",
 }
  const AI_GUIDE_CONNECTION_STEPS = {
   case1: [
@@ -85,55 +108,55 @@ const AI_GUIDE_AUDIO = {
       key: 'case1-1-9',
       terminals: ['1-endpoint', '9-endpoint'],
       text: "Let's start with case-1 connection",
-      audio: null,
+      audio: AI_GUIDE_AUDIO.correctConnection1To9,
     },
     {
       key: 'case1-2-10',
       terminals: ['2-endpoint', '10-endpoint'],
       //text: 'Connect terminal 2 to terminal 10.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect2To10,
     },
     {
       key: 'case1-17-18',
       terminals: ['17-endpoint', '18-endpoint'],
       //text: 'Short voltage source terminals 17 to 18.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.short17To18,
     },
     {
       key: 'case1-3-11',
       terminals: ['3-endpoint', '11-endpoint'],
       //text: 'Connect terminal 3 to terminal 11.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect3To11,
     },
     {
       key: 'case1-4-12',
       terminals: ['4-endpoint', '12-endpoint'],
       //text: 'Connect terminal 4 to terminal 12.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect4To12,
     },
     {
       key: 'case1-5-13',
       terminals: ['5-endpoint', '13-endpoint'],
       //text: 'Connect terminal 5 to terminal 13.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect5To13,
     },
     {
       key: 'case1-6-14',
       terminals: ['6-endpoint', '14-endpoint'],
       //text: 'Connect terminal 6 to terminal 14.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect6To14,
     },
     {
       key: 'case1-7-15',
       terminals: ['7-endpoint', '15-endpoint'],
       //text: 'Connect terminal 7 to terminal 15.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect7To15,
     },
     {
       key: 'case1-8-16',
       terminals: ['8-endpoint', '16-endpoint'],
       //text: 'Connect terminal 8 to terminal 16.',
-      audio: null,
+     audio: AI_GUIDE_AUDIO.connect8To16,
     },
   ],
 
@@ -328,6 +351,7 @@ const lastGuideMessageRef = useRef('')
 const resistanceGuideTimerRef = useRef(null)
 const case1IntroSpokenRef = useRef(false)
 const [calculationsVerified, setCalculationsVerified] = useState(false)
+const [highlightWalkthrough, setHighlightWalkthrough] = useState(false)
 const touchedResistorsRef = useRef(new Set())
 const lastInstructionAudioRef = useRef('')
 const aiGuideJustEnabledRef = useRef(false)
@@ -391,6 +415,20 @@ useEffect(() => {
 
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+  /*useEffect(() => {
+  const handleComplete = () => {
+    if (!aiGuideEnabled) return
+
+    playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true, () => {
+      playAiGuideAudio(AI_GUIDE_AUDIO.chooseAutoOrManual, true, () => {
+        startManualConnectionGuide('case1')
+      })
+    })
+  }
+
+  window.addEventListener('walkthrough-complete', handleComplete)
+  return () => window.removeEventListener('walkthrough-complete', handleComplete)
+}, [aiGuideEnabled, playAiGuideAudio])*/
  const handleResistanceChange = (key, setter, value) => {
   setter(value)
   setResistanceSet(true)
@@ -503,13 +541,15 @@ const advanceManualConnectionStep = () => {
       type: 'success',
       icon: '✅',
     }, null)
-
+    playAiGuideAudio(AI_GUIDE_AUDIO.allConnectionsComplete)
     return
   }
 
   manualGuideIndexRef.current = nextIndex
   setManualGuideIndex(nextIndex)
   setActiveGuideTerminals([...nextStep.terminals])
+
+  playAiGuideAudio(nextStep.audio)
 
   /*showAlertWithOptionalAudio({
     title: 'Next Connection',
@@ -560,25 +600,30 @@ const requiredCase2VoltageAdds = new Set([
   observations.bothSources,
 ].filter(Boolean).length
 
-const playAiGuideAudio = useCallback((audioPath) => {
-  if (!aiGuideEnabled || !audioPath) return
+const playAiGuideAudio = useCallback((audioPath, force = false, onEnd = null) => {
+  if ((!aiGuideEnabled && !force) || !audioPath) return
 
   window.speechSynthesis?.cancel()
 
-  if (aiGuideAudioRef.current) {
-    aiGuideAudioRef.current.pause()
-    aiGuideAudioRef.current.currentTime = 0
+  const oldAudio = aiGuideAudioRef.current
+  if (oldAudio) {
+    oldAudio.onended = null
+    oldAudio.pause()
+    oldAudio.currentTime = 0
   }
 
-  const audio = new Audio(audioPath)
-  aiGuideAudioRef.current = audio
+  window.setTimeout(() => {
+    const audio = new Audio(encodeURI(audioPath))
+    aiGuideAudioRef.current = audio
 
-  audio.play().catch((err) => {
-    console.error(err)
-    console.warn('Could not play AI Guide audio:', audioPath)
-  })
+    audio.onended = () => onEnd?.()
+
+    audio.play().catch((err) => {
+      console.error(err)
+      console.warn('Could not play AI Guide audio:', audioPath)
+    })
+  }, 50)
 }, [aiGuideEnabled])
-
 
 const playGuideAudio = useCallback((key, audioPath) => {
   if (!aiGuideEnabled || !audioPath) return
@@ -587,6 +632,20 @@ const playGuideAudio = useCallback((key, audioPath) => {
   lastGuideMessageRef.current = key
 
   playAiGuideAudio(audioPath)
+}, [aiGuideEnabled, playAiGuideAudio])
+useEffect(() => {
+  const handleComplete = () => {
+    if (!aiGuideEnabled) return
+
+    playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true, () => {
+      playAiGuideAudio(AI_GUIDE_AUDIO.chooseAutoOrManual, true, () => {
+        startManualConnectionGuide('case1')
+      })
+    })
+  }
+
+  window.addEventListener('walkthrough-complete', handleComplete)
+  return () => window.removeEventListener('walkthrough-complete', handleComplete)
 }, [aiGuideEnabled, playAiGuideAudio])
 
 const showGuideAlert = useCallback((key, audioPath) => {
@@ -1059,9 +1118,13 @@ const handleAiGuide = () => {
       lastGuideMessageRef.current = ''
       aiGuideJustEnabledRef.current = true
 
-      speakGuideMessage("AI Guide activated. Let's connect the components.")
+      playAiGuideAudio(AI_GUIDE_AUDIO.aiGuideClick, true, () => {
+  setHighlightWalkthrough(true)
+})
 
       setTimeout(() => {
+  aiGuideJustEnabledRef.current = false
+}, 1200)/*setTimeout(() => {
         speakGuideMessage(
           'First, set the values of R1, R2 and R3 using the resistance sliders.'
         )
@@ -1069,13 +1132,22 @@ const handleAiGuide = () => {
         setTimeout(() => {
           aiGuideJustEnabledRef.current = false
         }, 500)
-      }, 2200)
+      }, 2200)*/
     } else {
       window.speechSynthesis?.cancel()
       aiGuideJustEnabledRef.current = false
     }
 
     return next
+  })
+}
+const handleWalkthroughComplete = () => {
+  if (!aiGuideEnabled) return
+
+  playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true, () => {
+    playAiGuideAudio(AI_GUIDE_AUDIO.chooseAutoOrManual, true, () => {
+      startManualConnectionGuide('case1')
+    })
   })
 }
   const handleGenerateReport = async () => {
@@ -1226,15 +1298,9 @@ await new Promise(resolve => setTimeout(resolve,700))
 //HELLOOOOO
     setConnectionsVerified(false)
     if (result.totalConnections > 1) {
-  playGuideAudio(
-    'multiple-wrong-connections',
-    AI_GUIDE_MESSAGES.multipleWrongConnections
-  )
+  playGuideAudio('multiple-wrong-connections', AI_GUIDE_AUDIO.multipleWrongConnections)
 } else {
-  playGuideAudio(
-    'wrong-connection',
-    AI_GUIDE_MESSAGES.wrongConnection
-  )
+  playGuideAudio('wrong-connection', AI_GUIDE_AUDIO.wrongConnection)
 }
     if (result.totalConnections === 0) {
       setStatus('Please make the connections first.')
@@ -1557,7 +1623,13 @@ setStatus('Voltage source switched on. Adjust voltage and add the reading.')
         >
           <main className="simulation-shell" id="walkthrough-demo-experiment">
             <HeaderBoard />
-            <WalkthroughStartButton variant="side-tab" />
+            <div className={highlightWalkthrough ? 'walkthrough-start-highlight' : ''}>
+  <WalkthroughStartButton
+  variant="side-tab"
+  highlighted={highlightWalkthrough}
+  onStart={() => setHighlightWalkthrough(false)}
+/>
+</div>
             {/* <StatusBar status={status} /> */}
             <span className="sr-only" role="status" aria-live="polite">{status}</span>
 

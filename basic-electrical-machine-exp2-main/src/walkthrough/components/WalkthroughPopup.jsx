@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
@@ -99,17 +99,20 @@ const WalkthroughPopup = ({
   onPrevious,
   targetRect,
   totalSteps,
+  isAudioPlaying,
+onSkip,
+onToggleAudio,
 }) => {
   const popupRef = useRef(null)
-  const audioRef = useRef(null)
+  /*const audioRef = useRef(null)*/
   const [popupSize, setPopupSize] = useState(DEFAULT_POPUP_SIZE)
-  const [isPlaying, setIsPlaying] = useState(false)
+  //const [isPlaying, setIsPlaying] = useState(false)
   const audioSource = isValidAudioSource(activeStep.audio) ? activeStep.audio : null
   const titleId = `walkthrough-title-${activeStep.id}`
   const descriptionId = `walkthrough-description-${activeStep.id}`
   const progressPercent = (currentStep / totalSteps) * 100
   const primaryActionLabel = canGoNext ? 'Next' : 'Finish'
-  const handlePrimaryAction = canGoNext ? onNext : onClose
+ const handlePrimaryAction = canGoNext ? onNext : () => onClose(true)
 
   useFocusTrap(popupRef, true)
 
@@ -126,7 +129,7 @@ const WalkthroughPopup = ({
     })
   }, [activeStep.id, targetRect])
 
-  useEffect(() => {
+  /*useEffect(() => {
     const resetPlayingTimer = window.setTimeout(() => setIsPlaying(false), 0)
 
     if (!audioSource) {
@@ -153,14 +156,14 @@ const WalkthroughPopup = ({
       audio.currentTime = 0
       audio.removeEventListener('ended', handleEnded)
     }
-  }, [activeStep.id, audioSource, autoPlayAudio])
+  }, [activeStep.id, audioSource, autoPlayAudio])*/
 
   const popupPosition = useMemo(
     () => getPopupPosition(targetRect, popupSize, activeStep.placement),
     [activeStep.placement, popupSize, targetRect],
   )
 
-  const toggleAudio = () => {
+  /*const toggleAudio = () => {
     const audio = audioRef.current
 
     if (!audio) {
@@ -176,7 +179,7 @@ const WalkthroughPopup = ({
     audio.play()
       .then(() => setIsPlaying(true))
       .catch(() => setIsPlaying(false))
-  }
+  }*/
 
   return (
     <motion.aside
@@ -207,9 +210,9 @@ const WalkthroughPopup = ({
         </div>
 
         <button
-          aria-label="Exit walkthrough"
+          aria-label="Skip walkthrough"
           className="walkthrough-popup__icon-button"
-          onClick={onClose}
+          onClick={onSkip}
           type="button"
         >
           <span aria-hidden="true">&times;</span>
@@ -230,15 +233,13 @@ const WalkthroughPopup = ({
         </span>
 
         <button
-          aria-label={audioSource ? (isPlaying ? 'Pause audio narration' : 'Play audio narration') : 'Audio narration unavailable'}
-          aria-pressed={audioSource ? isPlaying : undefined}
-          className="walkthrough-popup__audio"
-          disabled={!audioSource}
-          onClick={toggleAudio}
-          type="button"
-        >
-          <span aria-hidden="true">{isPlaying ? 'Pause' : 'Audio'}</span>
-        </button>
+  className="walkthrough-popup__audio"
+  disabled={!audioSource}
+  onClick={onToggleAudio}
+  type="button"
+>
+  <span>{isAudioPlaying ? 'Pause' : 'Play'}</span>
+</button>
       </div>
 
       <div className="walkthrough-popup__actions">
@@ -252,7 +253,7 @@ const WalkthroughPopup = ({
         </button>
         <button
           className="walkthrough-popup__button walkthrough-popup__button--secondary"
-          onClick={onClose}
+          onClick={() => onClose(currentStep === totalSteps)}
           type="button"
         >
           Exit

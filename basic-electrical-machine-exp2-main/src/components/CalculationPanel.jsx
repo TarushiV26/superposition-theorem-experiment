@@ -28,6 +28,7 @@ const CalculationPanel = ({
   calculationResetTrigger,
   setInstructionStep,
   onPlayAiGuideAudio,
+  aiGuideAudio,
 }) => {
   const [sourceValues, setSourceValues] = useState({
     r1: '',
@@ -199,9 +200,11 @@ return operators[branch] === '+'
       setInstructionStep?.('verified')
       setIsVerified(true)
       onVerificationComplete?.()
+      onPlayAiGuideAudio?.(aiGuideAudio?.verifyCorrect)
     } else {
       setVerificationMessage('✗ Check your signs and calculated current values.')
       setIsVerified(false)
+      onPlayAiGuideAudio?.(aiGuideAudio?.verifyIncorrect)
     }
   }, 0)
 }

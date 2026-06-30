@@ -338,3 +338,21 @@
     transition: none;
   }
 }
+.walkthrough-start-button--highlighted {
+  outline: 4px solid #facc15 !important;
+  outline-offset: 6px;
+  box-shadow:
+    0 0 0 7px rgba(250, 204, 21, 0.32),
+    0 0 24px rgba(250, 204, 21, 1) !important;
+  animation: walkthrough-start-pulse 850ms ease-in-out infinite alternate;
+}
+
+@keyframes walkthrough-start-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.08);
+  }
+}

@@ -6,20 +6,22 @@ import WalkthroughPopup from './WalkthroughPopup.jsx'
 
 const WalkthroughOverlay = () => {
   const {
-    activeStep,
-    autoPlayAudioForStep,
-    canGoNext,
-    canGoPrevious,
-    close,
-    currentStep,
-    isOpen,
-    isPositioningTarget,
-    next,
-    previous,
-    targetRect,
-    totalSteps,
-  } = useWalkthrough()
-
+  activeStep,
+  autoPlayAudioForStep,
+  canGoNext,
+  canGoPrevious,
+  close,
+  currentStep,
+  isOpen,
+  isPositioningTarget,
+  next,
+  previous,
+  targetRect,
+  totalSteps,
+  isAudioPlaying,
+  skipToLastStep,
+  toggleStepAudio,
+} = useWalkthrough()
   return (
     <AnimatePresence>
       {isOpen && activeStep ? (
@@ -47,6 +49,9 @@ const WalkthroughOverlay = () => {
                 onPrevious={previous}
                 targetRect={targetRect}
                 totalSteps={totalSteps}
+                isAudioPlaying={isAudioPlaying}
+  onSkip={skipToLastStep}
+  onToggleAudio={toggleStepAudio}
               />
             ) : null}
           </AnimatePresence>

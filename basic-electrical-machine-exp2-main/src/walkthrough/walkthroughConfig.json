@@ -15,7 +15,7 @@
       "description": {
         "en": "To verify the Superposition Theorem by recording the branch currents under three conditions: (i) with only the current source active, (ii) with only the voltage source active, and (iii) with both sources connected"
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Aim.wav",
       "placement": "bottom"
     },
     {
@@ -25,7 +25,7 @@
   "description": {
     "en": "Click INSTRUCTION to open the detailed procedure for performing all three cases of the Superposition Theorem experiment."
   },
-  "audio": "#",
+  "audio": "/ai-guide-audio/Instructions Button.wav",
   "placement": "right"
 },
 {
@@ -35,6 +35,7 @@
   "description": {
     "en": "To use this feature, click on the “AI Guide” button. The AI guide will assist you in performing the simulation accurately at each step."
   },
+  "audio": "/ai-guide-audio/AI Guide Button.wav",
   "placement": "bottom"
 },
     {
@@ -44,52 +45,53 @@
         "en": "Check Connections"
       },
       "description": {
-        "en": "Press CHECK after wiring each case. Sources should be switched ON only after the current case connections are verified."
+        "en": "The CHECK button verifies all the connections to ensure that they are correct.\nNote: (a) If a wire is connected incorrectly, click the corresponding label number to remove the connection.\n(b) Sources should be switched ON only after the current case connections are verified."
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Check Button.wav",
       "placement": "right"
     },
     
-{
-  "id": 5,
-  "target": "#calculate-button",
-  "title": { "en": "Calculate" },
-  "description": {
-    "en": "Click Calculate after completing all observations. It auto-fills resistance values, source values and observed currents in the Calculation Panel."
-  },
-  "placement": "bottom"
-},
     {
-  "id": 6,
+  "id": 5,
   "target": "#auto-connect-button",
   "title": { "en": "Auto Connect" },
   "description": {
     "en": "Click on the AUTO CONNECT button to automatically make the required connections for the selected case as per the given instructions.\nCase 1: Connects the Current Source only and short-circuits the voltage source.\nCase 2: Connects the Voltage Source only and open-circuits the current source.\nCase 3: Connects both the Current Source and Voltage Source."
   },
-  "audio": "#",
+  "audio": "/ai-guide-audio/Auto Connect Button.wav",
   "placement": "right"
 },
     {
-      "id": 7,
+      "id": 6,
       "target": "#add-reading-button",
       "title": {
         "en": "Add Reading"
       },
       "description": {
-        "en": "Click ADD after each verified case. The observation table stores one row each for current source only, voltage source only, and both sources connected."
+        "en": "The ADD button adds the readings to the observation table."
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Add Button.wav",
       "placement": "right"
     },
+    {
+  "id": 7,
+  "target": "#calculate-button",
+  "title": { "en": "Calculate" },
+  "description": {
+    "en": "The CALCULATE button auto-fills resistance values, source values and observed currents in the Calculation Panel. For verification, you have to manually calculate the total current using the superposition theorem concept and verify it using the VERIFY button."
+  },
+  "audio": "/ai-guide-audio/Calculate Button.wav",
+  "placement": "bottom"
+},
 
 {
   "id": 8,
   "target": "#reset-button",
   "title": { "en": "Reset Experiment" },
   "description": {
-    "en": "Click RESET to clear the circuit connections, source values, resistance values, observations, and calculation entries."
+    "en":  "The RESET button refresh the simulation to its initial state for a fresh start."
   },
-  "audio": "#",
+  "audio": "/ai-guide-audio/Reset button.wav",
   "placement": "right"
 },
 {
@@ -97,9 +99,9 @@
   "target": "#print-button",
   "title": { "en": "Print Page" },
   "description": {
-    "en": "Click PRINT to print the current experiment page after completing the observations."
+    "en": "The PRINT button allows you to print the simulation."
   },
-  "audio": "#",
+  "audio": "/ai-guide-audio/Print Button.wav",
   "placement": "right"
 },
     {
@@ -109,9 +111,9 @@
         "en": "Set Resistance Values First"
       },
       "description": {
-        "en": "Set R1, R2, and R3 before making connections. These resistance values must remain the same for all three cases in one experiment run."
+        "en": " Set the values of R1, R2, and R3 before making the circuit connections. These resistance values must remain the same for all three cases to ensure accurate verification of the Superposition Theorem."
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Resistance Sliders.wav",
       "placement": "right"
     },
  {
@@ -121,9 +123,9 @@
     "en": "Current Source"
   },
   "description": {
-    "en": "The current source supplies a fixed current to the circuit. During the Current Source Only case, activate this source and set the desired current value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
+    "en": "The current source supplies current to the circuit. For case 1, activate the current source and set the desired current value by varying the slider. "
   },
-  "audio": "#",
+  "audio": "/ai-guide-audio/Current Source.wav",
   "placement": "left"
 },
 {
@@ -131,9 +133,9 @@
   "target": "#ammeters-walkthrough-target",
   "title": { "en": "Ammeters A1, A2 and A3" },
   "description": {
-    "en": "A1, A2 and A3 show the branch current readings. Note these values for Current Source Only, Voltage Source Only and Both Sources Active cases."
+    "en": "Ammeters are used to measure the branch currents in the circuit. Record the current readings for each branch under all three cases. These readings will be used later to verify the Superposition Theorem."
   },
-  "audio": "#",
+  "audio": "/ai-guide-audio/DC Ammeters.wav",
   "placement": "bottom"
 },
     {
@@ -143,9 +145,9 @@
     "en": "Voltage Source"
   },
   "description": {
-    "en": "The voltage source supplies a fixed voltage to the circuit. During the Voltage Source Only case, activate this source and set the desired voltage value. The resulting branch currents I1, I2, and I3 will be used later for Superposition calculations."
+    "en": "The voltage source supplies voltage to the circuit. For case 2, activate the voltage source and set the desired voltage value by varying the slider. "
   },
-  "audio": "#",
+  "audio": "/ai-guide-audio/Voltage Source.wav",
   "placement": "left"
 },
 
@@ -156,9 +158,9 @@
         "en": "Case-wise Circuit Wiring"
       },
       "description": {
-        "en": "Make and verify the circuit connections separately for each case: current source only, voltage source only, and both sources connected."
+        "en": "This section displays the circuit and allows users to make the required connections for each case by dragging and dropping wires between the connection points."
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Circuit Connections.wav",
       "placement": "left"
     },
    
@@ -171,7 +173,7 @@
       "description": {
         "en": "This table displays the measured branch currents I1, I2, and I3 for all three cases. These readings are used later in the calculation panel."
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Observation Table.wav",
       "placement": "right"
     },
     {
@@ -181,9 +183,9 @@
         "en": "Calculation Panel"
       },
       "description": {
-        "en": "After completing all three observations, enter the resistance values, source values, current source readings, and voltage source readings in this section."
+        "en": "This is the Calculation Panel where the Superposition Theorem will be verified. Enter the calculated values and compare the calculated and observed branch currents to verify the theorem."
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Calculation Panel.wav",
       "placement": "top"
     },
     {
@@ -193,9 +195,9 @@
         "en": "Generate Report"
       },
       "description": {
-        "en": "After completing the observation table and calculation verification, generate the final report containing readings, calculations, verification status, and conclusion."
+        "en": "The Report button generates a summarised report of the simulation. After completing the observation table and calculation verification, generate the report. The report will include the time taken to complete the simulation, the apparatus used, recorded readings, user calculations, verification status, and conclusion of the simulation."
       },
-      "audio": "#",
+      "audio": "/ai-guide-audio/Generate Reportw.wav",
       "placement": "top"
     }
   ]
