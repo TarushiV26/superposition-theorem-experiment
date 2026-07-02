@@ -69,6 +69,7 @@ const getPopupPosition = (rect, size, preferredPlacement) => {
     const candidate = getCandidatePosition(rect, size, placement)
     const fitsHorizontally = candidate.left >= EDGE_GAP && candidate.left + size.width <= viewportWidth - EDGE_GAP
     const fitsVertically = candidate.top >= EDGE_GAP && candidate.top + size.height <= viewportHeight - EDGE_GAP
+    
 
     if (fitsHorizontally && fitsVertically) {
       return {
@@ -112,6 +113,7 @@ onToggleAudio,
   const descriptionId = `walkthrough-description-${activeStep.id}`
   const progressPercent = (currentStep / totalSteps) * 100
   const primaryActionLabel = canGoNext ? 'Next' : 'Finish'
+  const isLastStep = currentStep === totalSteps
  const handlePrimaryAction = canGoNext ? onNext : () => onClose(true)
 
   useFocusTrap(popupRef, true)
@@ -210,13 +212,14 @@ onToggleAudio,
         </div>
 
         <button
-          aria-label="Skip walkthrough"
-          className="walkthrough-popup__icon-button"
-          onClick={onSkip}
-          type="button"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
+  aria-label="Skip walkthrough"
+  className="walkthrough-popup__icon-button"
+  onClick={isLastStep ? undefined : onSkip}
+  disabled={isLastStep}
+  type="button"
+>
+    <span aria-hidden="true">&times;</span>
+</button>
       </div>
 
       <p className="walkthrough-popup__description" id={descriptionId}>
@@ -233,12 +236,24 @@ onToggleAudio,
         </span>
 
         <button
-  className="walkthrough-popup__audio"
+  className={`walkthrough-popup__audio ${
+    isAudioPlaying
+      ? 'walkthrough-popup__audio--playing'
+      : 'walkthrough-popup__audio--paused'
+  }`}
   disabled={!audioSource}
   onClick={onToggleAudio}
   type="button"
 >
-  <span>{isAudioPlaying ? 'Pause' : 'Play'}</span>
+  {isAudioPlaying ? (
+    <>
+      ⏸ <span>Pause</span>
+    </>
+  ) : (
+    <>
+      ▶ <span>Play</span>
+    </>
+  )}
 </button>
       </div>
 
@@ -252,12 +267,13 @@ onToggleAudio,
           Previous
         </button>
         <button
-          className="walkthrough-popup__button walkthrough-popup__button--secondary"
-          onClick={() => onClose(currentStep === totalSteps)}
-          type="button"
-        >
-          Exit
-        </button>
+  className="walkthrough-popup__button walkthrough-popup__button--secondary"
+  onClick={onSkip}
+  disabled={isLastStep}
+  type="button"
+>
+  Skip
+</button>
         <button
           className="walkthrough-popup__button walkthrough-popup__button--primary"
           data-autofocus

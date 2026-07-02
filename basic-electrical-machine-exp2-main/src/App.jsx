@@ -88,7 +88,8 @@ connect7To15: '/ai-guide-audio/Connect terminal 7 to terminal 15.wav',
 connect8To16: '/ai-guide-audio/Last connect terminal 8 to terminal 16..wav',
 short17To18: '/ai-guide-audio/now short terminal voltage to 17 to 18.wav',
 allConnectionsComplete: '/ai-guide-audio/Guide all complete conn.wav',
-
+connect17To19:"/ai-guide-audio/After the above steppart1.wav",
+connect18To20:"/ai-guide-audio/After the above step part 2.wav",
 wrongConnection: '/ai-guide-audio/Wrong connection.wav',
 multipleWrongConnections: '/ai-guide-audio/Multiple wrong connections.wav',
 
@@ -165,13 +166,13 @@ connect4To12: "/ai-guide-audio/Connect terminal 4 to terminal 12..wav",
       key: 'case2-17-19',
       terminals: ['17-endpoint', '19-endpoint'],
       text: "Let's start with case-2 connection",
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect17To19,
     },
     {
       key: 'case2-18-20',
       terminals: ['18-endpoint', '20-endpoint'],
       //text: 'Connect terminal 18 to terminal 20.',
-      audio: null,
+      audio: AI_GUIDE_AUDIO.connect18To20,
     },
   ],
 
@@ -350,6 +351,7 @@ const manualGuideIndexRef = useRef(0)
 const lastGuideMessageRef = useRef('')
 const resistanceGuideTimerRef = useRef(null)
 const case1IntroSpokenRef = useRef(false)
+const chooseModeAudioPlayedRef = useRef(false)
 const [calculationsVerified, setCalculationsVerified] = useState(false)
 const [highlightWalkthrough, setHighlightWalkthrough] = useState(false)
 const touchedResistorsRef = useRef(new Set())
@@ -447,8 +449,12 @@ useEffect(() => {
     case1IntroSpokenRef.current = true
     instructionStepRef.current = 'case1-connections'
     setInstructionStep('case1-connections')
-    if (aiGuideEnabled) {
-  startManualConnectionGuide('case1')
+    if (aiGuideEnabled && !chooseModeAudioPlayedRef.current) {
+  chooseModeAudioPlayedRef.current = true
+
+  playAiGuideAudio(AI_GUIDE_AUDIO.chooseAutoOrManual, true, () => {
+    startManualConnectionGuide('case1')
+  })
 }
   }, 1200)
 }
@@ -504,15 +510,9 @@ const repeatManualConnectionStep = (step) => {
 
   setActiveGuideTerminals(step.terminals)
 
-  showAlertWithOptionalAudio(
-    {
-      title: 'Wrong Connection',
-      description: `This connection is wrong. ${step.text}`,
-      type: 'warning',
-      icon: '⚠️',
-    },
-    step.audio
-  )
+  playAiGuideAudio(AI_GUIDE_AUDIO.wrongConnection, true, () => {
+    playAiGuideAudio(step.audio, true)
+  })
 }
 
 const advanceManualConnectionStep = () => {
@@ -637,11 +637,7 @@ useEffect(() => {
   const handleComplete = () => {
     if (!aiGuideEnabled) return
 
-    playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true, () => {
-      playAiGuideAudio(AI_GUIDE_AUDIO.chooseAutoOrManual, true, () => {
-        startManualConnectionGuide('case1')
-      })
-    })
+    playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true)
   }
 
   window.addEventListener('walkthrough-complete', handleComplete)
@@ -1020,6 +1016,7 @@ setAutoFillTrigger(0)
     setSessionStart(Date.now())
     removedAfterCase1Ref.current.clear()
     setInstructionStep('resistance')
+    chooseModeAudioPlayedRef.current = false
     voltageLimitWarningShownRef.current = false
     setStatus('Simulation reset. Set R1, R2 and R3 before making circuit connections.')
     case1IntroSpokenRef.current = false
@@ -1119,24 +1116,42 @@ const handleAiGuide = () => {
       aiGuideJustEnabledRef.current = true
 
       playAiGuideAudio(AI_GUIDE_AUDIO.aiGuideClick, true, () => {
-  setHighlightWalkthrough(true)
-})
+        setHighlightWalkthrough(true)
+      })
 
-      setTimeout(() => {
-  aiGuideJustEnabledRef.current = false
-}, 1200)/*setTimeout(() => {
-        speakGuideMessage(
-          'First, set the values of R1, R2 and R3 using the resistance sliders.'
-        )
+      window.setTimeout(() => {
+        aiGuideJustEnabledRef.current = false
+      }, 1200)
+    } 
+    else {
+  // Stop current audio
+  if (aiGuideAudioRef.current) {
+    aiGuideAudioRef.current.pause()
+    aiGuideAudioRef.current.currentTime = 0
+    aiGuideAudioRef.current = null
+  }
 
-        setTimeout(() => {
-          aiGuideJustEnabledRef.current = false
-        }, 500)
-      }, 2200)*/
-    } else {
-      window.speechSynthesis?.cancel()
-      aiGuideJustEnabledRef.current = false
-    }
+  // Stop browser speech
+  window.speechSynthesis?.cancel()
+
+  // Clear walkthrough highlight
+  setHighlightWalkthrough(false)
+
+  // Remove highlighted terminals
+  setActiveGuideTerminals([])
+
+  // Reset manual guide
+  setManualGuideCase(null)
+  setManualGuideIndex(0)
+
+  manualGuideCaseRef.current = null
+  manualGuideIndexRef.current = 0
+
+  // Reset guide state
+  lastGuideMessageRef.current = ''
+  lastInstructionAudioRef.current = ''
+  currentAudioPathRef.current = ''
+}
 
     return next
   })
@@ -1144,11 +1159,7 @@ const handleAiGuide = () => {
 const handleWalkthroughComplete = () => {
   if (!aiGuideEnabled) return
 
-  playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true, () => {
-    playAiGuideAudio(AI_GUIDE_AUDIO.chooseAutoOrManual, true, () => {
-      startManualConnectionGuide('case1')
-    })
-  })
+  playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true)
 }
   const handleGenerateReport = async () => {
   console.log('GENERATE REPORT CLICKED', {
@@ -1547,6 +1558,23 @@ setStatus('Voltage source switched on. Adjust voltage and add the reading.')
   })
   return
 }
+// Auto Connect starts, so stop manual step-by-step guide immediately.
+setActiveGuideTerminals([])
+setManualGuideCase(null)
+setManualGuideIndex(0)
+
+manualGuideCaseRef.current = null
+manualGuideIndexRef.current = 0
+
+// Stop any currently playing guide audio.
+if (aiGuideAudioRef.current) {
+  aiGuideAudioRef.current.pause()
+  aiGuideAudioRef.current.currentTime = 0
+  aiGuideAudioRef.current = null
+}
+
+currentAudioPathRef.current = ''
+lastGuideMessageRef.current = ''
     setAutoConnectRequest((current) => current + 1)
     setConnectionsVerified(false)
     if (!observations.currentSourceOnly) {
@@ -1840,6 +1868,7 @@ onConnectionChange={(count) => {
   calculationsVerified={calculationsVerified}
 />
 <button
+  id="equations-button"
   className="formula-button"
   type="button"
   onClick={() => setShowFormulaPanel(true)}

@@ -222,6 +222,7 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 1.55;
+  white-space: pre-line;
 }
 
 .walkthrough-popup__progress {
@@ -355,4 +356,28 @@
   to {
     transform: scale(1.08);
   }
+}
+.walkthrough-popup__audio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.walkthrough-popup__audio--playing {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.walkthrough-popup__audio:not(.walkthrough-popup__audio--playing) {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #166534;
+}
+.walkthrough-popup__icon-button:disabled {
+    opacity: .45;
+    cursor: not-allowed !important;
+    pointer-events: auto;
 }

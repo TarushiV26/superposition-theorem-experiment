@@ -331,7 +331,7 @@ useEffect(() => {
     start,
     targetRect,
     totalSteps,
-    isAudioPlaying,
+   isAudioPlaying,
 skipToLastStep,
 toggleStepAudio,
   }), [
@@ -351,6 +351,9 @@ toggleStepAudio,
     targetRect,
     totalSteps,
     walkthroughConfig,
+    isAudioPlaying,
+skipToLastStep,
+toggleStepAudio,
   ])
 
   return (

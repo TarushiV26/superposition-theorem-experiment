@@ -123,7 +123,7 @@
     "en": "Current Source"
   },
   "description": {
-    "en": "The current source supplies current to the circuit. For case 1, activate the current source and set the desired current value by varying the slider. "
+    "en": "The current source supplies current to the circuit. For case 1, activate the current source and set the desired current value by varying the slider.\n\nRating: 10 A DC."
   },
   "audio": "/ai-guide-audio/Current Source.wav",
   "placement": "left"
@@ -133,7 +133,7 @@
   "target": "#ammeters-walkthrough-target",
   "title": { "en": "Ammeters A1, A2 and A3" },
   "description": {
-    "en": "Ammeters are used to measure the branch currents in the circuit. Record the current readings for each branch under all three cases. These readings will be used later to verify the Superposition Theorem."
+    "en": "Ammeters are used to measure the branch currents in the circuit. Record the current readings for each branch under all three cases. These readings will be used later to verify the Superposition Theorem.\n\nRating: 0-10A DC."
   },
   "audio": "/ai-guide-audio/DC Ammeters.wav",
   "placement": "bottom"
@@ -145,7 +145,7 @@
     "en": "Voltage Source"
   },
   "description": {
-    "en": "The voltage source supplies voltage to the circuit. For case 2, activate the voltage source and set the desired voltage value by varying the slider. "
+    "en": "The voltage source supplies voltage to the circuit. For case 2, activate the voltage source and set the desired voltage value by varying the slider.\n\nRating: 0-10V DC."
   },
   "audio": "/ai-guide-audio/Voltage Source.wav",
   "placement": "left"
@@ -177,7 +177,19 @@
       "placement": "right"
     },
     {
-      "id": 16,
+  "id": 16,
+  "target": "#equations-button",
+  "title": {
+    "en": "Equations"
+  },
+  "description": {
+    "en": "Click the Equations button to view the formulae used for verifying the Superposition Theorem."
+  },
+  "audio": null,
+  "placement": "top"
+},
+    {
+      "id": 17,
       "target": "#calculation-panel",
       "title": {
         "en": "Calculation Panel"
@@ -189,7 +201,7 @@
       "placement": "top"
     },
     {
-      "id": 17,
+      "id": 18,
       "target": "#generate-report-button",
       "title": {
         "en": "Generate Report"
