@@ -1430,7 +1430,7 @@ export const generateSuperpositionReport = ({ observations, resistances, session
 
   const reportDateText = reportDate.toLocaleDateString(undefined, {
     day: '2-digit',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
   })
 

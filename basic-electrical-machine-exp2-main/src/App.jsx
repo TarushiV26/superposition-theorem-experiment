@@ -87,7 +87,9 @@ connect6To14: '/ai-guide-audio/Connect terminal 6 to terminal 14..wav',
 connect7To15: '/ai-guide-audio/Connect terminal 7 to terminal 15.wav',
 connect8To16: '/ai-guide-audio/Last connect terminal 8 to terminal 16..wav',
 short17To18: '/ai-guide-audio/now short terminal voltage to 17 to 18.wav',
-allConnectionsComplete: '/ai-guide-audio/Guide all complete conn.wav',
+allConnectionsComplete: '/ai-guide-audio/Guide all complete conn for case 1.wav',
+allConnectionsComplete2: '/ai-guide-audio/Guide all complete conn for case 2.wav',
+allConnectionsComplete3: '/ai-guide-audio/Guide all complete conn for case 3.wav',
 connect17To19:"/ai-guide-audio/After the above steppart1.wav",
 connect18To20:"/ai-guide-audio/After the above step part 2.wav",
 wrongConnection: '/ai-guide-audio/Wrong connection.wav',
@@ -541,7 +543,13 @@ const advanceManualConnectionStep = () => {
       type: 'success',
       icon: '✅',
     }, null)
-    playAiGuideAudio(AI_GUIDE_AUDIO.allConnectionsComplete)
+    if (caseKey === 'case1') {
+  playAiGuideAudio(AI_GUIDE_AUDIO.allConnectionsComplete)
+} else if (caseKey === 'case2') {
+  playAiGuideAudio(AI_GUIDE_AUDIO.allConnectionsComplete2)
+} else if (caseKey === 'case3') {
+  playAiGuideAudio(AI_GUIDE_AUDIO.allConnectionsComplete3)
+}
     return
   }
 
