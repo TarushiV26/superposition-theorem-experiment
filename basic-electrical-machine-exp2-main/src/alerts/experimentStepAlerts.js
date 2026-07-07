@@ -9,11 +9,11 @@ export const EXPERIMENT_ALERTS = {
     type: 'info',
   },
   circuitConnectionsCompleted: {
-    description: 'The default wiring path has been placed on the apparatus.',
+    description: ' Click on the check button to verify the connections.',
     icon: '✅',
     stepNumber: 1,
     target: '#circuit-panel',
-    title: 'Circuit Connections Completed Successfully',
+    title: 'Connections Completed.',
     type: 'success',
   },
   incorrectNodeConnection: {

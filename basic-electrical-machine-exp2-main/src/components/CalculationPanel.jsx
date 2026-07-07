@@ -188,27 +188,46 @@ return operators[branch] === '+'
 
   return Math.abs(userValue - expected) <= 0.11
 }
-  const handleVerify = () => {
+const buildVerificationRows = () => (
+  branches.map((branch, index) => {
+    const studentValue = Number(readings.userResults[branch.key])
+    const measuredValue = Number(calculateBranch(branch.key))
+    const difference = Math.abs(studentValue - measuredValue)
+
+    return {
+      label: `I<sub>${index + 1}</sub>`,
+      studentValue,
+      measuredValue,
+      difference,
+      verified:
+        Number.isFinite(studentValue) &&
+        Number.isFinite(measuredValue) &&
+        difference <= 0.11,
+    }
+  })
+)
+const handleVerify = () => {
   setVerificationMessage('')
   setIsVerified(false)
 
   window.setTimeout(() => {
-    const allCorrect = branches.every((branch) => isCorrect(branch.key))
+    const rows = buildVerificationRows()
+    const allCorrect = rows.every((row) => row.verified)
 
     if (allCorrect) {
       setVerificationMessage('✓ Superposition Theorem verified successfully.')
       setInstructionStep?.('verified')
       setIsVerified(true)
-      onVerificationComplete?.()
+      onVerificationComplete?.(rows)
       onPlayAiGuideAudio?.(aiGuideAudio?.verifyCorrect)
     } else {
       setVerificationMessage('✗ Check your signs and calculated current values.')
       setIsVerified(false)
+      onVerificationComplete?.(rows)
       onPlayAiGuideAudio?.(aiGuideAudio?.verifyIncorrect)
     }
   }, 0)
 }
-
   return (
     <SectionCard
   className="calculation-panel calculation-panel-card"

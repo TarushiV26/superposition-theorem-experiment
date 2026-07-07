@@ -282,14 +282,24 @@ const createReportHtml = ({
   resistances,
   sessionStart,
   virtualLabsLogoSrc,
+   verificationRows = [],
 }) => {
   const reportDate = new Date()
   const sessionEnd = reportDate.getTime()
-  const reportDateText = reportDate.toLocaleDateString(undefined, {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  })
+  const reportDateText = reportDate.toLocaleDateString('en-US', {
+  month: 'long',
+  day: '2-digit',
+  year: 'numeric'
+})
+const verificationTableRows = (verificationRows ?? []).map((row, index) => `
+  <tr>
+    <td>I<sub>${index + 1}</sub></td>
+    <td>${formatNumber(row.studentValue ?? row.student ?? row.calculatedValue)}</td>
+    <td>${formatNumber(row.measuredValue ?? row.measured ?? row.observedValue)}</td>
+    <td>${formatNumber(row.difference ?? row.absoluteDifference, 4)}</td>
+    <td>${row.verified ? '✓ Verified' : '✗ Not Verified'}</td>
+  </tr>
+`).join('')
   const startTimeText = new Date(sessionStart).toLocaleTimeString()
   const endTimeText = reportDate.toLocaleTimeString()
   const durationText = getSessionDurationText(sessionStart, sessionEnd)
@@ -1420,7 +1430,7 @@ const createSuperpositionObservationRows = (observations) => (
     </tr>
   `).join('')
 )
-export const generateSuperpositionReport = ({ observations, resistances, sessionStart }) => {
+export const generateSuperpositionReport = ({ observations, resistances, sessionStart,verificationRows = [], }) => {
   const baseHref = new URL(import.meta.env.BASE_URL, window.location.origin).href
   const iitLogoSrc = new URL('../assets/IIT Logo.png', import.meta.url).href
   const virtualLabsLogoSrc = new URL('../assets/image.png', import.meta.url).href
@@ -1448,24 +1458,21 @@ export const generateSuperpositionReport = ({ observations, resistances, session
 
   const observationRows = createSuperpositionObservationRows(observations)
 
-  const verificationRows = ['i1', 'i2', 'i3'].map((key, index) => {
-    const label = `I${index + 1}`
-    const calculated = toNumber(cs[key]) + toNumber(vs[key])
-    const observed = toNumber(both[key])
-    const difference = getSuperpositionDifference(cs[key], vs[key], both[key])
-
-    return `
+  const verificationTableRows = verificationRows.length
+  ? verificationRows.map((row, index) => `
       <tr>
-        <td>${label}</td>
-        <td>${formatNumber(cs[key])}</td>
-        <td>${formatNumber(vs[key])}</td>
-        <td>${formatNumber(calculated)}</td>
-        <td>${formatNumber(observed)}</td>
-        <td>${formatNumber(Math.abs(difference), 4)}</td>
+        <td>${row.label ?? `I<sub>${index + 1}</sub>`}</td>
+        <td>${formatNumber(row.studentValue)}</td>
+        <td>${formatNumber(row.measuredValue)}</td>
+        <td>${formatNumber(row.difference, 4)}</td>
+        <td>${row.verified ? '✓ Verified' : '✗ Not Verified'}</td>
+      </tr>
+    `).join('')
+  : `
+      <tr>
+        <td colspan="5">Calculation verification data is not available.</td>
       </tr>
     `
-  }).join('')
-
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -1754,16 +1761,23 @@ export const generateSuperpositionReport = ({ observations, resistances, session
     </div>
 
     <section class="overview-card">
-      <span class="lab-tag">Basic Electrical Science Lab</span>
+      <span class="lab-tag">
+  AI-Enhanced Basic Electrical Science Lab
+</span>
 
-      <p class="experiment-title">
-        <strong>Experiment Title:</strong>
-        To Verify Superposition Theorem
-      </p>
+      <div class="experiment-row">
+  <div>
+    <p class="experiment-title">
+      <strong>Experiment Title:</strong><br>
+      To verify Superposition Theorem
+    </p>
+  </div>
 
-      <p class="date-line">
-        <strong>Date:</strong> ${escapeHtml(reportDateText)}
-      </p>
+  <div class="generated-date">
+    <strong>Generated On</strong><br>
+    ${escapeHtml(reportDateText)}
+  </div>
+</div>
 
       <div class="time-grid">
         <div class="time-card">
@@ -1794,27 +1808,22 @@ export const generateSuperpositionReport = ({ observations, resistances, session
 
       <h3>Simulation Summary</h3>
       <p>
-        The circuit was connected and verified for three operating conditions:
-        current source active, voltage source active, and both sources active.
-        The branch currents I1, I2 and I3 were recorded for each case and compared
-        using the principle of superposition.
+        The guided walkthrough was utilised to perform the experiment step-by-step. The circuit was configured for all three operating conditions, branch currents were recorded for each case, the algebraic sum of the individual source contributions was calculated, and the calculated values were compared with the measured branch currents to verify the Superposition Theorem.
       </p>
     </section>
 
     <section class="section">
-      <h2>Components and Key Parameters</h2>
+      <h2>Apparatus Used</h2>
 
       <ul class="two-column-list">
-        <li>DC Current Source</li>
-        <li>DC Voltage Source</li>
-        <li>Ammeter A1 for I1</li>
-        <li>Ammeter A2 for I2</li>
-        <li>Ammeter A3 for I3</li>
-        <li>Resistor R1: ${formatNumber(r1, 1)} &Omega;</li>
-        <li>Resistor R2: ${formatNumber(r2, 1)} &Omega;</li>
-        <li>Resistor R3: ${formatNumber(r3, 1)} &Omega;</li>
-        <li>Connecting wires</li>
-      </ul>
+  <li>DC Current Source 10 A</li>
+  <li>DC Voltage Source 10 V</li>
+  <li>DC Ammeters 0–10 A</li>
+  <li>Resistor R1: ${formatNumber(r1,1)} Ω</li>
+  <li>Resistor R2: ${formatNumber(r2,1)} Ω</li>
+  <li>Resistor R3: ${formatNumber(r3,1)} Ω</li>
+  <li>Connecting Wires</li>
+</ul>
     </section>
 
     <section class="section">
@@ -1826,9 +1835,9 @@ export const generateSuperpositionReport = ({ observations, resistances, session
             <tr>
               <th>S.No.</th>
               <th>Case</th>
-              <th>I1 (A)</th>
-              <th>I2 (A)</th>
-              <th>I3 (A)</th>
+              <th>I<sub>1</sub> (A)</th>
+              <th>I<sub>2</sub> (A)</th>
+              <th>I<sub>3</sub> (A)</th>
             </tr>
           </thead>
           <tbody>
@@ -1841,25 +1850,21 @@ export const generateSuperpositionReport = ({ observations, resistances, session
     <section class="section">
       <h2>Calculations and Verification</h2>
 
-      <div class="formula-box">
-        I(total) = I(current source only) + I(voltage source only)
-      </div>
 
       <div class="table-shell" style="margin-top: 14px;">
         <table>
           <thead>
             <tr>
-              <th>Branch Current</th>
-              <th>Current Source Only (A)</th>
-              <th>Voltage Source Only (A)</th>
-              <th>Algebraic Sum (A)</th>
-              <th>Both Sources Active (A)</th>
-              <th>Absolute Difference (A)</th>
-            </tr>
+  <th>Branch Current</th>
+<th>Calculated Value (A)</th>
+<th>Measured Value (A)</th>
+<th>Absolute Difference (A)</th>
+<th>Verification Status</th>
+</tr>
           </thead>
           <tbody>
-            ${verificationRows}
-          </tbody>
+  ${verificationTableRows}
+</tbody>
         </table>
       </div>
     </section>

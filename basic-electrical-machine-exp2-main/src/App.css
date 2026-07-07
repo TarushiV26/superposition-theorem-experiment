@@ -2040,3 +2040,26 @@ textarea {
     filter: drop-shadow(0 0 18px rgba(250, 204, 21, 1));
   }
 }
+.experiment-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+}
+
+.generated-date{
+  text-align:right;
+  font-size:14px;
+  font-weight:600;
+  color:#51677d;
+}
+
+.experiment-title{
+  margin:0;
+}
+p,
+.formula-panel,
+.equation-panel,
+.report-page p {
+  text-align: justify;
+}

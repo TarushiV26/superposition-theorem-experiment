@@ -222,7 +222,10 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 1.55;
-  white-space: pre-line;
+ text-align: justify;
+  text-justify: inter-word;
+  white-space: pre-line;   /* \n ko line break banaye rakhega */
+  line-height: 1.6;
 }
 
 .walkthrough-popup__progress {

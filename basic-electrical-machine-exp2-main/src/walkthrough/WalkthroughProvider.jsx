@@ -97,6 +97,18 @@ const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 
   setIsAudioPlaying(false)
 }, [])
+useEffect(() => {
+  const handleForceStop = () => {
+    window.__SKIP_NEXT_WALKTHROUGH_AUDIO__ = true
+    stopAudio()
+  }
+
+  window.addEventListener('force-stop-all-audio', handleForceStop)
+
+  return () => {
+    window.removeEventListener('force-stop-all-audio', handleForceStop)
+  }
+}, [stopAudio])
   const close = useCallback((completed = false) => {
   stopAudio()
 
@@ -141,6 +153,12 @@ const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 
 
 const playStepAudio = useCallback(() => {
+  if (window.__SKIP_NEXT_WALKTHROUGH_AUDIO__) {
+    window.__SKIP_NEXT_WALKTHROUGH_AUDIO__ = false
+    setIsAudioPlaying(false)
+    return
+  }
+
   if (!activeStep?.audio) return
 
   stopAudio()
