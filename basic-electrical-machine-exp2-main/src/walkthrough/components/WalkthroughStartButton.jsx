@@ -14,15 +14,9 @@ const WalkthroughStartButton = ({
     return null
   }
 
-  const handleClick = () => {
+ const handleClick = () => {
   onStart?.()
-
-  window.__SKIP_NEXT_WALKTHROUGH_AUDIO__ = true
-  window.dispatchEvent(new Event('force-stop-all-audio'))
-
-  window.setTimeout(() => {
-    start()
-  }, 150)
+  start()
 }
 
   return (

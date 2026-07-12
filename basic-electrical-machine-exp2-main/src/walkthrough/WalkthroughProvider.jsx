@@ -1,13 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import defaultWalkthroughConfig from './walkthroughConfig.json'
 import { WalkthroughContext } from './WalkthroughContext.js'
 import { loadWalkthroughConfig } from './walkthroughConfigLoader.js'
 import WalkthroughOverlay from './components/WalkthroughOverlay.jsx'
 import './walkthrough.css'
+import {
+  pauseSharedAudio,
+  playSharedAudio,
+  resumeSharedAudio,
+  stopSharedAudio,
+} from '../utils/audioController.js'
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
-
+const WALKTHROUGH_AUDIO_OWNER = 'walkthrough'
 const getElementRect = (element) => {
   if (!element) {
     return null
@@ -44,7 +50,7 @@ const WalkthroughProvider = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isPositioningTarget, setIsPositioningTarget] = useState(false)
   const [targetRect, setTargetRect] = useState(null)
-  const audioRef = useRef(null)
+  //const audioRef = useRef(null)
 const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 
   const totalSteps = walkthroughConfig.steps.length
@@ -88,41 +94,28 @@ const [isAudioPlaying, setIsAudioPlaying] = useState(false)
     moveToStep(stepIndex)
     setIsOpen(true)
   }, [moveToStep])
-  const stopAudio = useCallback(() => {
-  if (audioRef.current) {
-    audioRef.current.pause()
-    audioRef.current.currentTime = 0
-    audioRef.current = null
-  }
-
+  const stopAudio = useCallback((reason = 'walkthrough-stop') => {
+  stopSharedAudio(reason, WALKTHROUGH_AUDIO_OWNER)
   setIsAudioPlaying(false)
 }, [])
-useEffect(() => {
-  const handleForceStop = () => {
-    window.__SKIP_NEXT_WALKTHROUGH_AUDIO__ = true
-    stopAudio()
-  }
 
-  window.addEventListener('force-stop-all-audio', handleForceStop)
-
-  return () => {
-    window.removeEventListener('force-stop-all-audio', handleForceStop)
-  }
-}, [stopAudio])
-  const close = useCallback((completed = false) => {
-  stopAudio()
+ const close = useCallback((completed = false) => {
+  stopAudio('walkthrough-close')
 
   setIsOpen(false)
   setIsPositioningTarget(false)
   setTargetRect(null)
 
   if (completed) {
-    window.dispatchEvent(new Event('walkthrough-complete'))
+    window.dispatchEvent(
+      new Event('walkthrough-complete'),
+    )
+
     onComplete?.()
   }
 }, [onComplete, stopAudio])
   const next = useCallback(() => {
-  stopAudio()
+  stopAudio('walkthrough-next')
 
   if (currentStepIndex >= totalSteps - 1) {
     close(true)
@@ -138,7 +131,7 @@ useEffect(() => {
   totalSteps,
 ])
   const previous = useCallback(() => {
-  stopAudio()
+  stopAudio('walkthrough-previous')
   moveToStep(currentStepIndex - 1)
 }, [
   currentStepIndex,
@@ -146,57 +139,81 @@ useEffect(() => {
   stopAudio,
 ])
 
- const goToStep = useCallback ((stepIndex) => {
-    moveToStep(stepIndex)
-  }, [moveToStep])
+ const goToStep = useCallback((stepIndex) => {
+  stopAudio('walkthrough-go-to-step')
+  moveToStep(stepIndex)
+}, [moveToStep, stopAudio])
   
 
 
 const playStepAudio = useCallback(() => {
-  if (window.__SKIP_NEXT_WALKTHROUGH_AUDIO__) {
-    window.__SKIP_NEXT_WALKTHROUGH_AUDIO__ = false
+  if (!activeStep?.audio) {
     setIsAudioPlaying(false)
     return
   }
 
-  if (!activeStep?.audio) return
+  playSharedAudio({
+    src: activeStep.audio,
+    owner: WALKTHROUGH_AUDIO_OWNER,
+    enabled: true,
 
-  stopAudio()
+    onStart: () => {
+      setIsAudioPlaying(true)
+    },
 
-  const audio = new Audio(encodeURI(activeStep.audio))
-  audioRef.current = audio
+    onEnd: () => {
+      setIsAudioPlaying(false)
+    },
 
-  audio.onended = () => {
-    setIsAudioPlaying(false)
-  }
+    onStop: () => {
+      setIsAudioPlaying(false)
+    },
 
-  setIsAudioPlaying(true)
+    onError: (error) => {
+      console.error('Walkthrough audio could not play:', {
+        stepId: activeStep.id,
+        audio: activeStep.audio,
+        error,
+      })
 
-  audio.play().catch((err) => {
-    console.error('Walkthrough audio failed:', err)
-    setIsAudioPlaying(false)
+      setIsAudioPlaying(false)
+    },
   })
-}, [activeStep, stopAudio])
+}, [activeStep])
 
-const toggleStepAudio = useCallback(() => {
+const toggleStepAudio = useCallback(async () => {
   if (!activeStep?.audio) return
 
-  if (!audioRef.current) {
-    playStepAudio()
+  if (isAudioPlaying) {
+    const paused = pauseSharedAudio(WALKTHROUGH_AUDIO_OWNER)
+
+    if (paused) {
+      setIsAudioPlaying(false)
+    }
+
     return
   }
 
-  if (audioRef.current.paused) {
+  const resumed = await resumeSharedAudio(
+    WALKTHROUGH_AUDIO_OWNER,
+  )
+
+  if (resumed) {
     setIsAudioPlaying(true)
-    audioRef.current.play().catch(() => setIsAudioPlaying(false))
-  } else {
-    audioRef.current.pause()
-    setIsAudioPlaying(false)
+    return
   }
-}, [activeStep, playStepAudio])
+
+  // Audio end ho chuki hai ya kisi doosre owner ne replace kar di.
+  // Current step ki audio beginning se start hogi.
+  playStepAudio()
+}, [
+  activeStep,
+  isAudioPlaying,
+  playStepAudio,
+])
 
 const skipToLastStep = useCallback(() => {
-  stopAudio()
+  stopAudio('walkthrough-skip')
   moveToStep(totalSteps - 1)
 }, [moveToStep, stopAudio, totalSteps])
 useEffect(() => {
@@ -289,17 +306,28 @@ useEffect(() => {
   }
 }, [isOpen])
 useEffect(() => {
-  if (!isOpen || !activeStep?.audio) {
-    stopAudio()
-    return
+  if (!isOpen) {
+    stopAudio('walkthrough-closed')
+    return undefined
+  }
+
+  if (!activeStep?.audio) {
+    stopAudio('walkthrough-step-has-no-audio')
+    return undefined
   }
 
   playStepAudio()
 
   return () => {
-    stopAudio()
+    stopAudio('walkthrough-step-cleanup')
   }
-}, [activeStep, isOpen, playStepAudio, stopAudio])
+}, [
+  activeStep?.id,
+  activeStep?.audio,
+  isOpen,
+  playStepAudio,
+  stopAudio,
+])
 
   useEffect(() => {
     if (!isOpen) {

@@ -20,7 +20,10 @@ import {
   AI_GUIDE_STEP_MESSAGES,
   speakGuideMessage,
 } from './utils/aiGuide.js'
-
+import {
+ playSharedAudio,
+  stopSharedAudio,
+} from './utils/audioController.js'
 const AI_GUIDE_AUDIO = {
   case1Verified:
     '/ai-guide-audio/After 1st case connections, check Connections Verified.wav',
@@ -110,6 +113,7 @@ beforeCheckingCurrentSource: '/ai-guide-audio/Before checking, Current Source.wa
 beforeCheckingVoltageSource:
 '/ai-guide-audio/During the 2nd case, Voltage source.wav',
 }
+const AI_GUIDE_AUDIO_OWNER = 'ai-guide'
  const AI_GUIDE_CONNECTION_STEPS = {
   case1: [
     {
@@ -385,8 +389,8 @@ const observationsRef = useRef(observations)
 useEffect(() => {
   observationsRef.current = observations
 }, [observations])
-const aiGuideAudioRef = useRef(null)
-const aiGuideAudioTimerRef = useRef(null)
+/*const aiGuideAudioRef = useRef(null)
+const aiGuideAudioTimerRef = useRef(null)*/
 const currentAudioPathRef = useRef('')
 
   /*const [pendingObservation, setPendingObservation] = useState({
@@ -620,56 +624,96 @@ const requiredCase2VoltageAdds = new Set([
   observations.bothSources,
 ].filter(Boolean).length
 
-const stopAiGuideAudio = useCallback((reason = 'manual-stop') => {
-  console.log('STOP AI GUIDE AUDIO:', reason)
+const stopAiGuideAudio = useCallback(
+  (reason = 'manual-stop') => {
+    stopSharedAudio(
+      `ai-guide:${reason}`,
+      AI_GUIDE_AUDIO_OWNER,
+    )
 
-  if (aiGuideAudioTimerRef.current) {
-    window.clearTimeout(aiGuideAudioTimerRef.current)
-    aiGuideAudioTimerRef.current = null
-  }
-
-  if (aiGuideAudioRef.current) {
-    aiGuideAudioRef.current.onended = null
-    aiGuideAudioRef.current.onerror = null
-    aiGuideAudioRef.current.pause()
-    aiGuideAudioRef.current.currentTime = 0
-    aiGuideAudioRef.current = null
-  }
-
-  window.speechSynthesis?.cancel()
-  currentAudioPathRef.current = ''
-}, [])
-
-const playAiGuideAudio = useCallback((audioPath, force = false, onEnd = null) => {
-  if ((!aiGuideEnabled && !force) || !audioPath) return
-
-  stopAiGuideAudio(`before-play: ${audioPath}`)
-
-  console.log('PLAY AI GUIDE AUDIO:', audioPath)
-
-  const audio = new Audio(encodeURI(audioPath))
-  aiGuideAudioRef.current = audio
-  currentAudioPathRef.current = audioPath
-
-  audio.onended = () => {
-    console.log('AUDIO ENDED:', audioPath)
-    aiGuideAudioRef.current = null
     currentAudioPathRef.current = ''
-    onEnd?.()
-  }
+  },
+  [],
+)
 
-  audio.onerror = () => {
-    console.warn('AUDIO ERROR:', audioPath)
-    aiGuideAudioRef.current = null
-    currentAudioPathRef.current = ''
-  }
+const playAiGuideAudio = useCallback(
+  (
+    audioPath,
+    force = false,
+    onEnd = null,
+    onCancel = null,
+  ) => {
+    if ((!aiGuideEnabled && !force) || !audioPath) {
+      onCancel?.()
+      return null
+    }
 
-  audio.play().catch((err) => {
-    console.warn('AUDIO PLAY FAILED:', audioPath, err)
-    aiGuideAudioRef.current = null
-    currentAudioPathRef.current = ''
-  })
-}, [aiGuideEnabled, stopAiGuideAudio])
+    currentAudioPathRef.current = audioPath
+
+    return playSharedAudio({
+      src: audioPath,
+      owner: AI_GUIDE_AUDIO_OWNER,
+      enabled: true,
+
+      onStart: () => {
+        console.log('AI GUIDE AUDIO STARTED:', audioPath)
+      },
+
+      onEnd: () => {
+        if (currentAudioPathRef.current === audioPath) {
+          currentAudioPathRef.current = ''
+        }
+
+        onEnd?.()
+      },
+
+      onStop: () => {
+        if (currentAudioPathRef.current === audioPath) {
+          currentAudioPathRef.current = ''
+        }
+
+        onCancel?.()
+      },
+
+      onError: (error) => {
+        console.error('AI GUIDE AUDIO COULD NOT PLAY:', {
+          audioPath,
+          error,
+        })
+
+        if (currentAudioPathRef.current === audioPath) {
+          currentAudioPathRef.current = ''
+        }
+
+        onCancel?.()
+      },
+    })
+  },
+  [aiGuideEnabled],
+)
+
+const playAiGuideAudioAndWait = useCallback(
+  (audioPath, force = false) => (
+    new Promise((resolve) => {
+      let settled = false
+
+      const finish = () => {
+        if (settled) return
+
+        settled = true
+        resolve()
+      }
+
+      playAiGuideAudio(
+        audioPath,
+        force,
+        finish,
+        finish,
+      )
+    })
+  ),
+  [playAiGuideAudio],
+)
 
 
 
@@ -687,13 +731,24 @@ useEffect(() => {
 
     if (!aiGuideEnabled) return
 
-    stopAiGuideAudio()
-    playAiGuideAudio(AI_GUIDE_AUDIO.walkthroughComplete, true)
+    playAiGuideAudio(
+      AI_GUIDE_AUDIO.walkthroughComplete,
+      true,
+    )
   }
 
-  window.addEventListener('walkthrough-complete', handleComplete)
-  return () => window.removeEventListener('walkthrough-complete', handleComplete)
-}, [aiGuideEnabled, playAiGuideAudio, stopAiGuideAudio])
+  window.addEventListener(
+    'walkthrough-complete',
+    handleComplete,
+  )
+
+  return () => {
+    window.removeEventListener(
+      'walkthrough-complete',
+      handleComplete,
+    )
+  }
+}, [aiGuideEnabled, playAiGuideAudio])
 
 const showGuideAlert = useCallback((key, audioPath) => {
   if (!aiGuideEnabled || !audioPath) return
@@ -734,16 +789,23 @@ if (aiGuideAudioRef.current && !aiGuideAudioRef.current.paused) {
 
 speakGuideMessage(message)
 }, [instructionStep, aiGuideEnabled])*/
-const speakCurrentInstruction = useCallback((step = instructionStep) => {
-  if (!aiGuideEnabled) return
+const speakCurrentInstruction = useCallback(
+  (step = instructionStep) => {
+    if (!aiGuideEnabled) return
 
-  const message = AI_GUIDE_STEP_MESSAGES[step]
+    const message = AI_GUIDE_STEP_MESSAGES[step]
+    if (!message) return
 
-  if (!message) return
+    // WAV narration chal rahi ho toh browser TTS mat chalao.
+    stopSharedAudio(
+      'before-browser-speech',
+    )
 
-  lastGuideMessageRef.current = `step-${step}`
-  speakGuideMessage(message)
-}, [aiGuideEnabled, instructionStep])
+    lastGuideMessageRef.current = `step-${step}`
+    speakGuideMessage(message)
+  },
+  [aiGuideEnabled, instructionStep],
+)
 
 const isCase3InProgress = (
   observations.currentSourceOnly &&
@@ -1178,49 +1240,48 @@ const handleCalculate = () => {
     )
   }, 300)
 }
-const handleAiGuide = () => {
-  setAiGuideEnabled((prev) => {
-    const next = !prev
+const handleAiGuide = useCallback(() => {
+  if (aiGuideEnabled) {
+    stopAiGuideAudio('guide-disabled')
+    window.speechSynthesis?.cancel()
 
-    if (next) {
-      lastGuideMessageRef.current = ''
-      aiGuideJustEnabledRef.current = true
+    setAiGuideEnabled(false)
+    setHighlightWalkthrough(false)
+    setActiveGuideTerminals([])
+    setManualGuideCase(null)
+    setManualGuideIndex(0)
 
-      playAiGuideAudio(AI_GUIDE_AUDIO.aiGuideClick, true)
+    manualGuideCaseRef.current = null
+    manualGuideIndexRef.current = 0
 
-      window.setTimeout(() => {
-        aiGuideJustEnabledRef.current = false
-      }, 1200)
-    } 
-    else {
-  // Stop current audio
-  stopAiGuideAudio()
+    lastGuideMessageRef.current = ''
+    lastInstructionAudioRef.current = ''
+    currentAudioPathRef.current = ''
+    aiGuideJustEnabledRef.current = false
 
-  // Stop browser speech
-  window.speechSynthesis?.cancel()
+    return
+  }
 
-  // Clear walkthrough highlight
-  setHighlightWalkthrough(false)
+  setAiGuideEnabled(true)
 
-  // Remove highlighted terminals
-  setActiveGuideTerminals([])
-
-  // Reset manual guide
-  setManualGuideCase(null)
-  setManualGuideIndex(0)
-
-  manualGuideCaseRef.current = null
-  manualGuideIndexRef.current = 0
-
-  // Reset guide state
   lastGuideMessageRef.current = ''
   lastInstructionAudioRef.current = ''
-  currentAudioPathRef.current = ''
-}
+  aiGuideJustEnabledRef.current = true
 
-    return next
-  })
-}
+  // force=true because state update async hai.
+  playAiGuideAudio(
+    AI_GUIDE_AUDIO.aiGuideClick,
+    true,
+  )
+
+  window.setTimeout(() => {
+    aiGuideJustEnabledRef.current = false
+  }, 1200)
+}, [
+  aiGuideEnabled,
+  playAiGuideAudio,
+  stopAiGuideAudio,
+])
 const handleWalkthroughComplete = () => {
   if (!aiGuideEnabled) return
 
@@ -1254,33 +1315,10 @@ const handleWalkthroughComplete = () => {
   ]
 
   if (aiGuideEnabled) {
-  playAiGuideAudio(AI_GUIDE_AUDIO.report)
-
-await new Promise(resolve => setTimeout(resolve,700))
-
-
-  const confirmed = await confirmAlert({
-    title: 'Report Generated Successfully',
-    description: 'Your report has been generated successfully. Click OK to view your report.',
-    type: 'success',
-    icon: '📄',
-  })
-
-  if (confirmed === false) return
-
-  const generated = generateSuperpositionReport({
-    observations: reportObservations,
-    resistances: { r1, r2, r3 },
-    sessionStart,
-    verificationRows: calculationVerificationRows,
-  })
-
-  if (generated) {
-    setReportGenerated(true)
-    setStatus('Superposition theorem report generated successfully.')
-  }
-
-  return
+  await playAiGuideAudioAndWait(
+    AI_GUIDE_AUDIO.report,
+    true,
+  )
 }
   const confirmed = await confirmAlert({
     title: 'Report Generated Successfully',
@@ -1293,10 +1331,11 @@ await new Promise(resolve => setTimeout(resolve,700))
   if (confirmed === false) return
 
   const generated = generateSuperpositionReport({
-    observations: reportObservations,
-    resistances: { r1, r2, r3 },
-    sessionStart,
-  })
+  observations: reportObservations,
+  resistances: { r1, r2, r3 },
+  sessionStart,
+  verificationRows: calculationVerificationRows,
+})
 
   if (!generated) {
     setStatus('Unable to open the report window.')
@@ -1745,8 +1784,6 @@ lastGuideMessageRef.current = ''
   variant="side-tab"
   onStart={() => {
     stopAiGuideAudio('walkthrough-start-click')
-    window.__SKIP_NEXT_WALKTHROUGH_AUDIO__ = true
-    window.dispatchEvent(new Event('force-stop-all-audio'))
   }}
 />
 </div>
@@ -2085,7 +2122,7 @@ onConnectionChange={(count) => {
   autoFillTrigger={autoFillTrigger}
   calculationResetTrigger={calculationResetTrigger}
   setInstructionStep={setInstructionStep}
-  onVerificationComplete={() => setCalculationsVerified(true)}
+  /*onVerificationComplete={() => setCalculationsVerified(true)}*/
   onPlayAiGuideAudio={playAiGuideAudio}
 aiGuideAudio={AI_GUIDE_AUDIO}
 onVerificationComplete={(rows) => {
