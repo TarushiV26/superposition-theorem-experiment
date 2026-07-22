@@ -186,7 +186,7 @@ const ActionButtons = ({
         <li className={instructionStep === 'case1-check' ? 'instruction-substep--active' : ''}>Click CHECK.</li>
         <li className={instructionStep === 'case1-turn-on-current' ? 'instruction-substep--active' : ''}>Turn ON current source only and keep voltage source OFF.</li>
         <li className={instructionStep === 'case1-set-current' ? 'instruction-substep--active' : ''}>Set the required current value.</li>
-        <li className={instructionStep === 'case1-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I1, I2 and I3 for Current Source Only.</li>
+        <li className={instructionStep === 'case1-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I<sub>1</sub>, I<sub>2</sub> and I<sub>3</sub> for Current Source Only.</li>
         <li className={instructionStep === 'case1-turn-off-current' ? 'instruction-substep--active' : ''}>Turn OFF current source and remove the short connection 17-18 and remove the connections 9-10 and 1-2.</li>
       </ol>
     </li>
@@ -200,7 +200,7 @@ const ActionButtons = ({
         <li className={instructionStep === 'case2-check' ? 'instruction-substep--active' : ''}>Click CHECK.</li>
         <li className={instructionStep === 'case2-turn-on-voltage' ? 'instruction-substep--active' : ''}>Turn ON voltage source only and keep current source OFF.</li>
         <li className={instructionStep === 'case2-set-voltage' ? 'instruction-substep--active' : ''}>Set the required voltage value.</li>
-        <li className={instructionStep === 'case2-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I1, I2 and I3 for Voltage Source Only.</li>
+        <li className={instructionStep === 'case2-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I<sub>1</sub>, I<sub>2</sub> and I<sub>3</sub> for Voltage Source Only.</li>
         <li className={instructionStep === 'case2-turn-off-voltage' ? 'instruction-substep--active' : ''}>Turn OFF voltage source.</li>
       </ol>
     </li>
@@ -214,7 +214,7 @@ const ActionButtons = ({
         <li className={instructionStep === 'case3-check' ? 'instruction-substep--active' : ''}>Click CHECK.</li>
         <li className={instructionStep === 'case3-turn-on-both' ? 'instruction-substep--active' : ''}>Turn ON both sources.</li>
         <li className={instructionStep === 'case3-use-locked-values' ? 'instruction-substep--active' : ''}>Use the same current value used in Case 1 and the same voltage value used in Case 2.</li>
-        <li className={instructionStep === 'case3-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I1, I2 and I3 for Both Sources Connected.</li>
+        <li className={instructionStep === 'case3-add-reading' ? 'instruction-substep--active' : ''}>Click ADD to save I<sub>1</sub>, I<sub>2</sub> and I<sub>3</sub> for Both Sources Connected.</li>
       </ol>
     </li>
   </ol>

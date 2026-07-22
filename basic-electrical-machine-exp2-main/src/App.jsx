@@ -191,6 +191,7 @@ const AI_GUIDE_AUDIO_OWNER = 'ai-guide'
     {
       key: 'case3-1-9',
       terminals: ['1-endpoint', '9-endpoint'],
+      text: "Let's start with case-3 connection",
       audio: AI_GUIDE_AUDIO.correctConnection1To9,
     },
     {
@@ -361,6 +362,9 @@ const [manualGuideCase, setManualGuideCase] = useState(null)
 const [manualGuideIndex, setManualGuideIndex] = useState(0)
 const manualGuideCaseRef = useRef(null)
 const manualGuideIndexRef = useRef(0)
+const autoConnectingRef = useRef(false)
+const autoConnectReleaseTimerRef = useRef(null)
+const autoConnectFeedbackPlayedRef = useRef(false)
 const lastGuideMessageRef = useRef('')
 const resistanceGuideTimerRef = useRef(null)
 const case1IntroSpokenRef = useRef(false)
@@ -749,7 +753,13 @@ useEffect(() => {
     )
   }
 }, [aiGuideEnabled, playAiGuideAudio])
-
+useEffect(() => {
+  return () => {
+    window.clearTimeout(
+      autoConnectReleaseTimerRef.current,
+    )
+  }
+}, [])
 const showGuideAlert = useCallback((key, audioPath) => {
   if (!aiGuideEnabled || !audioPath) return
 
@@ -1100,7 +1110,13 @@ setStatus('Reading added to the observation table.')*/
   }
 
   const resetSimulation = useCallback(() => {
-    stopAiGuideAudio()
+  autoConnectingRef.current = false
+
+  window.clearTimeout(
+    autoConnectReleaseTimerRef.current,
+  )
+
+  stopAiGuideAudio('simulation-reset')
     setAiGuideEnabled(false)
 window.speechSynthesis?.cancel()
 aiGuideJustEnabledRef.current = false
@@ -1670,72 +1686,79 @@ setStatus('Voltage source switched on. Adjust voltage and add the reading.')
 }
 
   const handleAutoConnect = () => {
-    if (!resistanceSet) {
-      showGuideAlert(
-  'set-resistance-autoconnect',
-  AI_GUIDE_MESSAGES.setResistance,
-  {
-    title: 'Set Resistance First',
-    target: '#resistance-controls',
-    type: 'warning',
+  if (!resistanceSet) {
+    showAlertWithOptionalAudio({
+      title: 'Set Resistance First',
+      description:
+        'Please set R1, R2 and R3 before making circuit connections.',
+      icon: '⚠️',
+      target: '#resistance-controls',
+      type: 'warning',
+    })
+
+    return
   }
-)
-  showAlertWithOptionalAudio({
-    title: 'Set Resistance First',
-    description: 'Please set R1, R2 and R3 before making circuit connections.',
-    icon: '⚠️',
-    target: '#resistance-controls',
-    type: 'warning',
-  })
-  return
+
+  // Programmatic wiring/detaching starts here.
+  autoConnectingRef.current = true
+  autoConnectFeedbackPlayedRef.current = false
+
+  window.clearTimeout(autoConnectReleaseTimerRef.current)
+
+  // Stop any manual-guide narration immediately.
+  stopAiGuideAudio('auto-connect-start')
+
+  manualGuideCaseRef.current = null
+  manualGuideIndexRef.current = 0
+
+  setManualGuideCase(null)
+  setManualGuideIndex(0)
+  setActiveGuideTerminals([])
+
+  currentAudioPathRef.current = ''
+  lastGuideMessageRef.current = ''
+
+  const caseKey = getConnectionCaseKey(observationsRef.current)
+
+  setConnectionsVerified(false)
+
+  if (caseKey === 'case1') {
+    instructionStepRef.current = 'case1-check'
+    setInstructionStep('case1-check')
+  } else if (caseKey === 'case2') {
+    instructionStepRef.current = 'case2-check'
+    setInstructionStep('case2-check')
+  } else {
+    instructionStepRef.current = 'case3-check'
+    setInstructionStep('case3-check')
+  }
+
+  setAutoConnectRequest((current) => current + 1)
+
+  setStatus(
+    'Default connections added automatically. Click CHECK to verify the circuit.',
+  )
+
+  // Same feedback for Case 1, Case 2 and Case 3.
+  showAlertWithOptionalAudio(
+    {
+      dedupeKey: `auto-connect-completed-${caseKey}-${Date.now()}`,
+      title: 'Auto Connections Completed',
+      description:
+        'Autoconnect completed. Click on the check button to verify the connections.',
+      type: 'success',
+      icon: '✅',
+    },
+    AI_GUIDE_AUDIO.autoConnect,
+  )
+
+  autoConnectFeedbackPlayedRef.current = true
+
+  // Safety release.
+  autoConnectReleaseTimerRef.current = window.setTimeout(() => {
+    autoConnectingRef.current = false
+  }, 1500)
 }
-// Auto Connect starts, so stop manual step-by-step guide immediately.
-stopAiGuideAudio()
-setActiveGuideTerminals([])
-setManualGuideCase(null)
-setManualGuideIndex(0)
-
-manualGuideCaseRef.current = null
-manualGuideIndexRef.current = 0
-
-// Stop any currently playing guide audio.
-
-
-currentAudioPathRef.current = ''
-lastGuideMessageRef.current = ''
-    setAutoConnectRequest((current) => current + 1)
-    setConnectionsVerified(false)
-    if (!observations.currentSourceOnly) {
-  setInstructionStep('case1-check')
-} else if (!observations.voltageSourceOnly) {
-  setInstructionStep('case2-check')
-} else {
-  setInstructionStep('case3-check')
-}
-
-    setStatus(
-      'Default connections added using jsPlumb. Click CHECK to validate and lock the circuit.',
-    )
-    showStepAlert(EXPERIMENT_ALERTS.circuitConnectionsCompleted)
-    showGuideAlert(
-  'Autoconnect completed. Click on the check button to verify the connections.',
-  AI_GUIDE_AUDIO.autoConnect,
-  {
-    title: 'Autoconnect Completed',
-    target: '#check-button',
-    type: 'success',
-  }
-)
-/*showGuideAlert(
-  `autoconnect-completed-${autoConnectRequest}`,
-  AI_GUIDE_MESSAGES.autoConnect,
-  {
-    title: 'Autoconnect Completed',
-    target: '#check-button',
-    type: 'success',
-  }
-)*/
-  }
 
   const handleVoltageChange = useCallback((nextVoltage) => {
     setVoltage(nextVoltage)
@@ -1898,12 +1921,26 @@ setR3={(value) => handleResistanceChange('r3', setR3, value)}
                   lockedCurrent={observations.currentSourceOnly !== null}
   lockedVoltage={observations.voltageSourceOnly !== null}
  onConnectionDetached={(sourceId, targetId) => {
+  // Case-2 Auto Connect old Case-1 wires programmatically remove karta hai.
+  // In removals ko manual Case-2 flow trigger nahi karna chahiye.
+  if (autoConnectingRef.current) {
+    console.log('AUTO CONNECT: ignored detached connection', {
+      sourceId,
+      targetId,
+    })
+
+    return
+  }
+
   const latestObservations = observationsRef.current
   const pairKey = normalizePair(sourceId, targetId)
 
   console.log('DETACHED:', pairKey)
 
-  if (!latestObservations.currentSourceOnly || latestObservations.voltageSourceOnly) {
+  if (
+    !latestObservations.currentSourceOnly ||
+    latestObservations.voltageSourceOnly
+  ) {
     return
   }
 
@@ -1914,14 +1951,13 @@ setR3={(value) => handleResistanceChange('r3', setR3, value)}
   removedAfterCase1Ref.current.add(pairKey)
 
   if (removedAfterCase1Ref.current.size === 3) {
-  instructionStepRef.current = 'case2-connections'
-  setInstructionStep('case2-connections')
+    instructionStepRef.current = 'case2-connections'
+    setInstructionStep('case2-connections')
 
-  if (aiGuideEnabled) {
-    startManualConnectionGuide('case2')
-    
+    if (aiGuideEnabled) {
+      startManualConnectionGuide('case2')
+    }
   }
-}
 }}
 onConnectionChange={(count) => {
   const currentStep = instructionStepRef.current
@@ -1929,15 +1965,31 @@ onConnectionChange={(count) => {
 
   console.log('COUNT:', count, 'STEP:', currentStep)
 
-  /*if (
-    currentStep === 'case1-connections' &&
-    !latestObservations.currentSourceOnly &&
-    count >= 9
-  ) {
-    instructionStepRef.current = 'case1-check'
-    setInstructionStep('case1-check')
+  if (autoConnectingRef.current) {
+    const caseKey = getConnectionCaseKey(latestObservations)
+
+    const expectedConnectionCount = {
+      case1: CASE_CONNECTIONS.case1.length,
+      case2: CASE_CONNECTIONS.case2.length,
+      case3: CASE_CONNECTIONS.case3.length,
+    }[caseKey]
+
+    if (count >= expectedConnectionCount) {
+      autoConnectingRef.current = false
+
+      window.clearTimeout(
+        autoConnectReleaseTimerRef.current,
+      )
+
+      console.log('AUTO CONNECT COMPLETED:', {
+        caseKey,
+        count,
+        expectedConnectionCount,
+      })
+    }
+
     return
-  }*/
+  }
 
   if (
     currentStep === 'case3-connections' &&
@@ -1951,12 +2003,29 @@ onConnectionChange={(count) => {
   }
 }}
        onConnectionAdded={(sourceId, targetId) => {
+  // Auto Connect programmatically wires add kar raha hai.
+  // Is time manual guide validation/audio bilkul nahi chalni chahiye.
+  if (autoConnectingRef.current) {
+    console.log('AUTO CONNECT: ignoring manual guide callback', {
+      sourceId,
+      targetId,
+    })
+
+    return
+  }
+
   const currentGuideStep = getCurrentManualGuideStep()
 
   console.log('GUIDE STEP:', currentGuideStep)
   console.log('SOURCE TARGET:', sourceId, targetId)
   console.log('EXPECTED PAIR:', currentGuideStep?.terminals)
-  console.log('PAIR MATCH:', isSamePair([sourceId, targetId], currentGuideStep?.terminals ?? []))
+  console.log(
+    'PAIR MATCH:',
+    isSamePair(
+      [sourceId, targetId],
+      currentGuideStep?.terminals ?? [],
+    ),
+  )
 
   if (aiGuideEnabled && currentGuideStep) {
     const actualPair = [sourceId, targetId]
@@ -1966,7 +2035,6 @@ onConnectionChange={(count) => {
       return
     }
 
-    console.log('CALLING ADVANCE NOW')
     advanceManualConnectionStep()
     return
   }
@@ -1974,11 +2042,20 @@ onConnectionChange={(count) => {
   const latestObservations = observationsRef.current
   const pairKey = normalizePair(sourceId, targetId)
 
-  console.log('ADDED:', pairKey, 'step:', instructionStepRef.current)
+  if (
+    !latestObservations.currentSourceOnly ||
+    latestObservations.voltageSourceOnly
+  ) {
+    return
+  }
 
-  if (!latestObservations.currentSourceOnly || latestObservations.voltageSourceOnly) return
-  if (instructionStepRef.current !== 'case2-connections') return
-  if (!requiredCase2VoltageAdds.has(pairKey)) return
+  if (instructionStepRef.current !== 'case2-connections') {
+    return
+  }
+
+  if (!requiredCase2VoltageAdds.has(pairKey)) {
+    return
+  }
 
   addedCase2VoltageRef.current.add(pairKey)
 
