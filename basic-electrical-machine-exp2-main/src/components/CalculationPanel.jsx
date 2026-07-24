@@ -50,6 +50,7 @@ const CalculationPanel = ({
     userResults: { i1: '', i2: '', i3: '' },
   })
   const [verificationMessage, setVerificationMessage] = useState('')
+  const [inputsLocked, setInputsLocked] = useState(true)
   const [isVerified, setIsVerified] = useState(false)
 
   const both = observations.bothSources
@@ -77,6 +78,7 @@ const CalculationPanel = ({
 
   setVerificationMessage('')
   setIsVerified(false)
+  setInputsLocked(true)
 }, [calculationResetTrigger])
 
   useEffect(() => {
@@ -113,6 +115,7 @@ const CalculationPanel = ({
 
 setIsVerified(false)
 setVerificationMessage('')
+setInputsLocked(false)
 }, [autoFillTrigger])
   const updateSourceValue = (key, value) => {
   setSourceValues((prev) => ({
@@ -220,11 +223,13 @@ const handleVerify = () => {
       setIsVerified(true)
       onVerificationComplete?.(rows)
       onPlayAiGuideAudio?.(aiGuideAudio?.verifyCorrect)
+      setInputsLocked(true)
     } else {
       setVerificationMessage('✗ Check your signs and calculated current values.')
       setIsVerified(false)
       onVerificationComplete?.(rows)
       onPlayAiGuideAudio?.(aiGuideAudio?.verifyIncorrect)
+      setInputsLocked(true)
     }
   }, 0)
 }
@@ -317,6 +322,7 @@ const handleVerify = () => {
                     <input
                       className="calculation-input"
                       value={readings.currentSourceOnly[branch.key]}
+                      disabled={inputsLocked}
                       onChange={(event) => updateReading('currentSourceOnly', branch.key, event.target.value)}
                     />
                   </td>
@@ -345,6 +351,7 @@ const handleVerify = () => {
                     <input
                       className="calculation-input"
                       value={readings.voltageSourceOnly[branch.key]}
+                      disabled={inputsLocked}
                       onChange={(event) => updateReading('voltageSourceOnly', branch.key, event.target.value)}
                     />
                   </td>
@@ -366,6 +373,7 @@ const handleVerify = () => {
                       className="calculation-input"
                       readOnly
                       value={format(calculateBranch(branch.key))}
+                      disabled={inputsLocked}
                     />
                   </td>
                 ))}
